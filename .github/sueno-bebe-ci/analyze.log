@@ -12,7 +12,4 @@ Got dependencies!
 8 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
 Analyzing sueno-bebe...                                         
-
-  error • The constructor being called isn't a const constructor. Try removing 'const' from the constructor invocation • lib/app.dart:162:16 • const_with_non_const
-
-1 issue found. (ran in 12.6s)
+No issues found! (ran in 13.5s)
