@@ -91,23 +91,11 @@ jobs:
           elif '_preferencesOverride' not in controller_text:
               raise SystemExit('No se encontró el campo de preferencias')
 
-          old_status = """  String sleepRangeStatus() {
-            final BabyProfile? current = profile;
-            final SleepStatistics? stats = rolling24Hours;
-            if (current == null || stats == null) {
-              return 'Sin datos suficientes';
-            }
-            final TrackingCoverage coverage = trackingCoverage(
-              const Duration(hours: 24),
-            );
-            if (coverage.level == TrackingCoverageLevel.incomplete) {
-              return coverage.message;
-            }
-            if (coverage.level == TrackingCoverageLevel.completeFewRecords) {
-              return coverage.message;
-            }
-          """
-          new_status = """  String sleepRangeStatus() {
+          status_pattern = re.compile(
+              r"  String sleepRangeStatus\(\) \{\n.*?    final tz\.TZDateTime localNow =",
+              re.S,
+          )
+          status_replacement = """  String sleepRangeStatus() {
             final BabyProfile? current = profile;
             if (current == null) {
               return 'Sin datos suficientes';
@@ -125,11 +113,14 @@ jobs:
             if (stats == null) {
               return 'Sin registros suficientes para comparar.';
             }
-          """
-          if old_status in controller_text:
-              controller_text = controller_text.replace(old_status, new_status, 1)
-          elif "return 'Sin registros suficientes para comparar.';" not in controller_text:
-              raise SystemExit('No se encontró sleepRangeStatus esperado')
+            final tz.TZDateTime localNow ="""
+          controller_text, status_count = status_pattern.subn(
+              status_replacement,
+              controller_text,
+              count=1,
+          )
+          if status_count != 1:
+              raise SystemExit('No se pudo reemplazar de forma única sleepRangeStatus')
           controller.write_text(controller_text, encoding='utf-8')
           PY
 
