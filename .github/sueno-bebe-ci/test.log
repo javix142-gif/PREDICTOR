@@ -12,12 +12,6 @@ Got dependencies!
 8 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
 
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: 1. calcula la duración de un evento finalizado
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: 2. permite un evento que cruza medianoche
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: 4. detecta superposición entre eventos
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: 18. rechaza término anterior o igual al inicio
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: rechaza un inicio futuro fuera de la tolerancia de reloj
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: los eventos contiguos no se consideran superpuestos
 ::group::❌ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/tracking_coverage_test.dart: cobertura inferior a 24 horas no permite comparar (failed)
 Bad state: The SharedPreferencesAsyncPlatform instance must be set.
 package:shared_preferences/src/shared_preferences_async.dart 25:7  new SharedPreferencesAsync
@@ -30,18 +24,36 @@ package:shared_preferences/src/shared_preferences_async.dart 25:7  new SharedPre
 package:sueno_bebe/controllers/app_controller.dart 43:38           new AppController
 test/tracking_coverage_test.dart 65:38                             main.<fn>
 ::endgroup::
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: 1. calcula la duración de un evento finalizado
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: 2. permite un evento que cruza medianoche
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: 4. detecta superposición entre eventos
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: 18. rechaza término anterior o igual al inicio
 ::group::❌ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/tracking_coverage_test.dart: a las 02:00 el último tramo nocturno produce despertar nocturno (failed)
 Bad state: The SharedPreferencesAsyncPlatform instance must be set.
 package:shared_preferences/src/shared_preferences_async.dart 25:7  new SharedPreferencesAsync
 package:sueno_bebe/controllers/app_controller.dart 43:38           new AppController
 test/tracking_coverage_test.dart 93:38                             main.<fn>
 ::endgroup::
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: rechaza un inicio futuro fuera de la tolerancia de reloj
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: los eventos contiguos no se consideran superpuestos
 ::group::❌ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/tracking_coverage_test.dart: a las 07:00 el despertar nocturno deja de estar activo (failed)
 Bad state: The SharedPreferencesAsyncPlatform instance must be set.
 package:shared_preferences/src/shared_preferences_async.dart 25:7  new SharedPreferencesAsync
 package:sueno_bebe/controllers/app_controller.dart 43:38           new AppController
 test/tracking_coverage_test.dart 110:38                            main.<fn>
 ::endgroup::
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 3. recorta correctamente eventos en las últimas 24 horas
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 5. calcula promedio
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 6. calcula mediana para cantidad par e impar
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 7. calcula percentiles con interpolación lineal
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 8. calcula rango intercuartílico
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 9. devuelve estadísticas vacías sin inventar datos
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 10. calcula estadísticas de varios días y separa día/noche
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 17. una modificación recalcula los totales
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: días sin registros quedan como sin datos y no entran en variabilidad
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: variabilidad aparece solo con tres días con datos
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: media y mediana de siestas requieren dos siestas
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: una reanudación nocturna de un minuto no crea ventana despierto
 ::group::❌ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/redesign_widget_test.dart: Hoy funciona con texto 1.5 y muestra despertar nocturno (failed)
 ══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
 The following StateError was thrown running a test:
@@ -50,7 +62,7 @@ Bad state: The SharedPreferencesAsyncPlatform instance must be set.
 When the exception was thrown, this was the stack:
 #0      new SharedPreferencesAsync (package:shared_preferences/src/shared_preferences_async.dart:25:7)
 #1      new AppController (package:sueno_bebe/controllers/app_controller.dart:43:38)
-#2      main.<anonymous closure> (file:///home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/redesign_widget_test.dart:59:38)
+#2      main.<anonymous closure> (file:///home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/redesign_widget_test.dart:63:38)
 #3      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
 <asynchronous suspension>
 #4      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
@@ -73,7 +85,7 @@ Bad state: The SharedPreferencesAsyncPlatform instance must be set.
 When the exception was thrown, this was the stack:
 #0      new SharedPreferencesAsync (package:shared_preferences/src/shared_preferences_async.dart:25:7)
 #1      new AppController (package:sueno_bebe/controllers/app_controller.dart:43:38)
-#2      main.<anonymous closure> (file:///home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/redesign_widget_test.dart:77:38)
+#2      main.<anonymous closure> (file:///home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/redesign_widget_test.dart:81:38)
 #3      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
 <asynchronous suspension>
 #4      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
@@ -86,43 +98,6 @@ The test description was:
 ════════════════════════════════════════════════════════════════════════════════════════════════════
 Test failed. See exception logs above.
 The test description was: navegación principal conserva las cuatro secciones
-
-::endgroup::
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 3. recorta correctamente eventos en las últimas 24 horas
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 5. calcula promedio
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 6. calcula mediana para cantidad par e impar
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 7. calcula percentiles con interpolación lineal
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 8. calcula rango intercuartílico
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 9. devuelve estadísticas vacías sin inventar datos
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 10. calcula estadísticas de varios días y separa día/noche
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 17. una modificación recalcula los totales
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: días sin registros quedan como sin datos y no entran en variabilidad
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: variabilidad aparece solo con tres días con datos
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: media y mediana de siestas requieren dos siestas
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: una reanudación nocturna de un minuto no crea ventana despierto
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/redesign_widget_test.dart: Estadísticas usa secciones y una columna con texto 1.5
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/redesign_widget_test.dart: gráfico diario muestra ausencia cuando no hay datos
-::group::❌ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/redesign_widget_test.dart: formulario rápido calcula diez minutos (failed)
-══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
-The following StateError was thrown running a test:
-Bad state: The SharedPreferencesAsyncPlatform instance must be set.
-
-When the exception was thrown, this was the stack:
-#0      new SharedPreferencesAsync (package:shared_preferences/src/shared_preferences_async.dart:25:7)
-#1      new AppController (package:sueno_bebe/controllers/app_controller.dart:43:38)
-#2      main.<anonymous closure> (file:///home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/redesign_widget_test.dart:179:38)
-#3      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
-<asynchronous suspension>
-#4      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
-<asynchronous suspension>
-<asynchronous suspension>
-(elided one frame from package:stack_trace)
-
-The test description was:
-  formulario rápido calcula diez minutos
-════════════════════════════════════════════════════════════════════════════════════════════════════
-Test failed. See exception logs above.
-The test description was: formulario rápido calcula diez minutos
 
 ::endgroup::
 ✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/prediction_service_test.dart: 11. predice con referencia por edad cuando no hay historial
@@ -140,6 +115,7 @@ package:matcher                                     expect
 package:flutter_test/src/widget_tester.dart 473:18  expect
 test/prediction_service_test.dart 226:5             main.<fn>
 ::endgroup::
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/redesign_widget_test.dart: Estadísticas usa secciones y una columna con texto 1.5
 ::group::❌ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/prediction_service_test.dart: un minuto después del despertar sigue siendo período nocturno (failed)
 Expected: SleepType:<SleepType.night>
   Actual: SleepType:<SleepType.nap>
@@ -149,5 +125,29 @@ package:flutter_test/src/widget_tester.dart 473:18  expect
 test/prediction_service_test.dart 246:5             main.<fn>
 ::endgroup::
 ✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/prediction_service_test.dart: despertar definitivo a las 07:00 permite primera siesta
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/redesign_widget_test.dart: gráfico diario muestra ausencia cuando no hay datos
+::group::❌ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/redesign_widget_test.dart: formulario rápido calcula diez minutos (failed)
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following StateError was thrown running a test:
+Bad state: The SharedPreferencesAsyncPlatform instance must be set.
+
+When the exception was thrown, this was the stack:
+#0      new SharedPreferencesAsync (package:shared_preferences/src/shared_preferences_async.dart:25:7)
+#1      new AppController (package:sueno_bebe/controllers/app_controller.dart:43:38)
+#2      main.<anonymous closure> (file:///home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/redesign_widget_test.dart:183:38)
+#3      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#4      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  formulario rápido calcula diez minutos
+════════════════════════════════════════════════════════════════════════════════════════════════════
+Test failed. See exception logs above.
+The test description was: formulario rápido calcula diez minutos
+
+::endgroup::
 
 ::error::28 tests passed, 9 failed.
