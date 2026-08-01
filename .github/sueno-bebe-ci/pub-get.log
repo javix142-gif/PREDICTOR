@@ -1,0 +1,12 @@
+Resolving dependencies...
+Note: intl is pinned to version 0.20.2 by flutter_localizations from the flutter SDK.
+See https://dart.dev/go/sdk-version-pinning for details.
+
+
+Because sueno_bebe depends on flutter_localizations from sdk which depends on intl 0.20.2, intl 0.20.2 is required.
+So, because sueno_bebe depends on intl ^0.20.3, version solving failed.
+
+
+You can try the following suggestion to make the pubspec resolve:
+* Consider downgrading your constraint on intl: flutter pub add intl:^0.20.2
+Failed to update packages.
