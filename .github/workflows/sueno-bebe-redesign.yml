@@ -77,11 +77,7 @@ jobs:
           old_initializer = '_preferences = preferences ?? SharedPreferencesAsync(),'
           new_initializer = '_preferencesOverride = preferences,'
           if old_initializer in controller_text:
-              controller_text = controller_text.replace(
-                  old_initializer,
-                  new_initializer,
-                  1,
-              )
+              controller_text = controller_text.replace(old_initializer, new_initializer, 1)
           elif new_initializer not in controller_text:
               raise SystemExit('No se encontró el inicializador de preferencias')
 
@@ -94,6 +90,46 @@ jobs:
               controller_text = controller_text.replace(old_field, new_field, 1)
           elif '_preferencesOverride' not in controller_text:
               raise SystemExit('No se encontró el campo de preferencias')
+
+          old_status = """  String sleepRangeStatus() {
+            final BabyProfile? current = profile;
+            final SleepStatistics? stats = rolling24Hours;
+            if (current == null || stats == null) {
+              return 'Sin datos suficientes';
+            }
+            final TrackingCoverage coverage = trackingCoverage(
+              const Duration(hours: 24),
+            );
+            if (coverage.level == TrackingCoverageLevel.incomplete) {
+              return coverage.message;
+            }
+            if (coverage.level == TrackingCoverageLevel.completeFewRecords) {
+              return coverage.message;
+            }
+          """
+          new_status = """  String sleepRangeStatus() {
+            final BabyProfile? current = profile;
+            if (current == null) {
+              return 'Sin datos suficientes';
+            }
+            final TrackingCoverage coverage = trackingCoverage(
+              const Duration(hours: 24),
+            );
+            if (coverage.level == TrackingCoverageLevel.incomplete) {
+              return coverage.message;
+            }
+            if (coverage.level == TrackingCoverageLevel.completeFewRecords) {
+              return coverage.message;
+            }
+            final SleepStatistics? stats = rolling24Hours;
+            if (stats == null) {
+              return 'Sin registros suficientes para comparar.';
+            }
+          """
+          if old_status in controller_text:
+              controller_text = controller_text.replace(old_status, new_status, 1)
+          elif "return 'Sin registros suficientes para comparar.';" not in controller_text:
+              raise SystemExit('No se encontró sleepRangeStatus esperado')
           controller.write_text(controller_text, encoding='utf-8')
           PY
 
