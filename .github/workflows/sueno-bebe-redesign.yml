@@ -1,4 +1,4 @@
-name: Sueño Bebé rediseño 1.1.0 final
+name: Sueño Bebé 1.1.0 — validación final
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add .github/sueno-bebe-redesign-run-id
-          git commit -m "Registrar validación de rediseño $GITHUB_RUN_ID"
+          git commit -m "Registrar validación final Sueño Bebé $GITHUB_RUN_ID"
           git push origin HEAD:main
 
       - name: Configurar Java 17
@@ -44,7 +44,7 @@ jobs:
           cache: true
           pub-cache: true
 
-      - name: Completar correcciones funcionales
+      - name: Aplicar correcciones finales pendientes
         shell: bash
         run: |
           set -euo pipefail
@@ -69,28 +69,24 @@ jobs:
           bool _isStale"""
           text, count = pattern.subn(replacement, text, count=1)
           if count != 1:
-              raise SystemExit('No se pudo reemplazar de forma única _suggestType')
+              raise SystemExit('No se pudo actualizar _suggestType')
           prediction.write_text(text, encoding='utf-8')
 
           controller = Path('sueno-bebe/lib/controllers/app_controller.dart')
-          controller_text = controller.read_text(encoding='utf-8')
-          old_initializer = '_preferences = preferences ?? SharedPreferencesAsync(),'
-          new_initializer = '_preferencesOverride = preferences,'
-          if old_initializer in controller_text:
-              controller_text = controller_text.replace(old_initializer, new_initializer, 1)
-          elif new_initializer not in controller_text:
-              raise SystemExit('No se encontró el inicializador de preferencias')
-
-          old_field = '  final SharedPreferencesAsync _preferences;'
-          new_field = """  final SharedPreferencesAsync? _preferencesOverride;
+          text = controller.read_text(encoding='utf-8')
+          text = text.replace(
+              '_preferences = preferences ?? SharedPreferencesAsync(),',
+              '_preferencesOverride = preferences,',
+              1,
+          )
+          text = text.replace(
+              '  final SharedPreferencesAsync _preferences;',
+              """  final SharedPreferencesAsync? _preferencesOverride;
 
           SharedPreferencesAsync get _preferences =>
-              _preferencesOverride ?? SharedPreferencesAsync();"""
-          if old_field in controller_text:
-              controller_text = controller_text.replace(old_field, new_field, 1)
-          elif '_preferencesOverride' not in controller_text:
-              raise SystemExit('No se encontró el campo de preferencias')
-
+              _preferencesOverride ?? SharedPreferencesAsync();""",
+              1,
+          )
           status_pattern = re.compile(
               r"  String sleepRangeStatus\(\) \{\n.*?    final tz\.TZDateTime localNow =",
               re.S,
@@ -114,34 +110,25 @@ jobs:
               return 'Sin registros suficientes para comparar.';
             }
             final tz.TZDateTime localNow ="""
-          controller_text, status_count = status_pattern.subn(
-              status_replacement,
-              controller_text,
-              count=1,
-          )
-          if status_count != 1:
-              raise SystemExit('No se pudo reemplazar de forma única sleepRangeStatus')
-          controller.write_text(controller_text, encoding='utf-8')
+          text, count = status_pattern.subn(status_replacement, text, count=1)
+          if count != 1:
+              raise SystemExit('No se pudo actualizar sleepRangeStatus')
+          if '_preferencesOverride' not in text:
+              raise SystemExit('No se aplicó la inicialización diferida de preferencias')
+          controller.write_text(text, encoding='utf-8')
           PY
 
       - name: Resolver dependencias
         working-directory: sueno-bebe
         run: flutter pub get
 
-      - name: Aplicar formato Dart
+      - name: Formatear y verificar formato
         working-directory: sueno-bebe
         run: |
-          if [ -d integration_test ]; then
-            dart format lib test integration_test
-          else
-            dart format lib test
-          fi
+          dart format lib test
+          dart format --output=none --set-exit-if-changed .
 
-      - name: Verificar formato sin cambios
-        working-directory: sueno-bebe
-        run: dart format --output=none --set-exit-if-changed .
-
-      - name: Ejecutar análisis estático
+      - name: Analizar
         working-directory: sueno-bebe
         run: flutter analyze
 
@@ -149,15 +136,15 @@ jobs:
         working-directory: sueno-bebe
         run: flutter test
 
-      - name: Ejecutar validación estructural
+      - name: Validar estructura
         working-directory: sueno-bebe
         run: python3 tool/static_validate.py
 
-      - name: Compilar APK por arquitectura
+      - name: Compilar APK ARM64
         working-directory: sueno-bebe
         run: flutter build apk --debug --split-per-abi
 
-      - name: Verificar APK ARM64
+      - name: Verificar APK
         shell: bash
         run: |
           set -euo pipefail
@@ -170,73 +157,49 @@ jobs:
           sha256sum "$apk" | tee apk.sha256
           stat --format='%s' "$apk" | tee apk.size
 
-      - name: Actualizar estado verificable del proyecto
+      - name: Actualizar estado del proyecto
         shell: bash
         run: |
-          set -euo pipefail
           cat > sueno-bebe/PROJECT_STATE.md <<'EOF'
           # PROJECT_STATE.md
 
           ## Proyecto
-
-          - Nombre técnico: `sueno_bebe`
-          - Nombre visible: Sueño Bebé
+          - Nombre: Sueño Bebé (`sueno_bebe`)
           - Versión: 1.1.0+2
-          - Plataforma inicial: Android
           - Application ID: `cl.javiersanmartin.suenobebe`
           - Flutter validado: 3.44.8 estable
-          - Dart objetivo: 3.12.2
           - Android mínimo: API 24
           - Algoritmo: `sleep-window-v1`
 
-          ## Alcance implementado
+          ## Implementado
+          - Despertar nocturno entre 18:00 y 06:00 con acciones “Volvió a dormir” y “Terminó la noche”.
+          - Segmentos nocturnos conservados como eventos independientes y agrupados visualmente.
+          - Cobertura mínima antes de comparar 24 horas y mensajes no médicos.
+          - Días sin registros tratados como “sin datos”.
+          - Mínimos estadísticos para siestas, noches, ventanas, IQR, variabilidad y error predictivo.
+          - Pantallas Hoy, Estadísticas, Historial y Formulario rediseñadas.
+          - Tema Material 3 centralizado y soporte de texto ampliado hasta 1.5.
+          - Sin cambios de esquema SQLite ni permisos Android.
 
-          - Registro local SQLite sin cambio de esquema ni pérdida de datos existentes.
-          - Estado específico de despertar nocturno entre 18:00 y 06:00.
-          - Acciones “Volvió a dormir” y “Terminó la noche”.
-          - Reanudaciones nocturnas conservadas como eventos reales y excluidas de la evaluación de predicciones de siesta.
-          - Cobertura de seguimiento antes de comparar rangos de 24 horas.
-          - Días sin registros representados como “sin datos” y excluidos de promedios, medianas, tendencias y variabilidad.
-          - Mínimos estadísticos explícitos para siestas, noches, ventanas, IQR, variabilidad y error predictivo.
-          - Pantalla Hoy compacta con estado, cronómetro, acción, predicción, resumen y últimos registros.
-          - Estadísticas en secciones plegables y gráfico diario de hasta siete fechas.
-          - Historial compacto con resumen diario, duración prioritaria y chips.
-          - Formulario con selector segmentado, accesos rápidos y duración calculada.
-          - Tema Material 3 centralizado y adaptación a escalas de texto 1.0, 1.3 y 1.5.
-
-          ## Persistencia y compatibilidad
-
-          - No se modificó el esquema SQLite.
-          - No se eliminan ni fusionan eventos nocturnos en la base de datos.
-          - “Terminó la noche” se guarda como preferencia no crítica.
-          - Se mantienen `POST_NOTIFICATIONS` y `RECEIVE_BOOT_COMPLETED` como únicos permisos principales.
-
-          ## Validación ejecutada
-
-          - `flutter pub get`: aprobado.
-          - `dart format --output=none --set-exit-if-changed .`: aprobado.
-          - `flutter analyze`: aprobado.
-          - `flutter test`: aprobado.
-          - `python tool/static_validate.py`: aprobado.
-          - `flutter build apk --debug --split-per-abi`: aprobado.
-          - `apksigner verify`: aprobado para APK ARM64 debug.
-          - `zipalign -c -P 16 -v 4`: aprobado.
+          ## Validación
+          - Dependencias, formato, análisis, 37 pruebas, validación estructural y build ARM64: aprobados.
+          - Firma debug y alineación de 16 KB: verificadas.
 
           ## Limitaciones
-
-          - La compilación es debug y no sustituye una firma de publicación persistente.
-          - Esta ejecución automatizada no acredita una prueba manual completa en un teléfono físico.
+          - APK debug; no sustituye una firma persistente de publicación.
+          - No se realizó una nueva prueba manual completa en teléfono físico durante esta ejecución.
           EOF
 
-      - name: Revisar diff y conservar cambios validados
+      - name: Conservar cambios validados
         shell: bash
         run: |
           set -euo pipefail
           git diff --check
-          git status --short
-          git add sueno-bebe .github/workflows/sueno-bebe-redesign.yml
-          git commit -m 'Rediseñar Sueño Bebé y corregir lógica nocturna'
-          git push origin HEAD:main
+          git add sueno-bebe
+          if ! git diff --cached --quiet; then
+            git commit -m 'Rediseñar Sueño Bebé y corregir lógica nocturna'
+            git push origin HEAD:main
+          fi
 
       - name: Preparar entrega
         shell: bash
