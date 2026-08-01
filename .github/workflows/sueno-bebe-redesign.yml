@@ -44,7 +44,7 @@ jobs:
           cache: true
           pub-cache: true
 
-      - name: Completar corrección nocturna e import requerido
+      - name: Completar corrección nocturna
         shell: bash
         run: |
           set -euo pipefail
@@ -71,11 +71,6 @@ jobs:
           if count != 1:
               raise SystemExit('No se pudo reemplazar de forma única _suggestType')
           prediction.write_text(text, encoding='utf-8')
-
-          status = Path('sueno-bebe/lib/widgets/current_status_card.dart')
-          status_text = status.read_text(encoding='utf-8')
-          if not status_text.startswith("import 'dart:ui';"):
-              status.write_text("import 'dart:ui';\n\n" + status_text, encoding='utf-8')
           PY
 
       - name: Resolver dependencias
