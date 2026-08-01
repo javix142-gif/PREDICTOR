@@ -25,6 +25,17 @@ class AwakeWindowObservation {
   final int sleepSequenceNumber;
 }
 
+class StatisticsMinimums {
+  const StatisticsMinimums._();
+
+  static const int napPatternCount = 2;
+  static const int nightPatternCount = 3;
+  static const int awakeMedianCount = 3;
+  static const int awakeIqrCount = 4;
+  static const int dailyVariabilityCount = 3;
+  static const int predictionErrorCount = 5;
+}
+
 class StatisticsService {
   const StatisticsService();
 
@@ -104,13 +115,17 @@ class StatisticsService {
     final double nightMinutes = totalMinutes - dayMinutes;
 
     final List<double> napDurations = slices
-        .where((_EventSlice slice) => slice.event.type == SleepType.nap)
+        .where(
+          (_EventSlice slice) =>
+              slice.event.type == SleepType.nap &&
+              slice.event.endUtc != null,
+        )
         .map((_EventSlice slice) => slice.minutes)
         .toList(growable: false);
 
     final List<double> continuousDurations = slices
         .map((_EventSlice slice) => slice.minutes)
-        .toList();
+        .toList(growable: false);
 
     final List<AwakeWindowObservation> awakeObservations =
         buildAwakeWindows(
@@ -127,30 +142,34 @@ class StatisticsService {
         .map((AwakeWindowObservation item) => item.minutes)
         .toList(growable: false);
 
-    final List<double> nightStartMinutes = <double>[];
-    final List<double> wakeMinutes = <double>[];
-    for (final SleepEvent event in sortedEvents) {
-      if (event.type != SleepType.night || event.endUtc == null) {
-        continue;
-      }
-      if (event.endUtc!.isBefore(startUtc) || event.startUtc.isAfter(endUtc)) {
-        continue;
-      }
-      final tz.TZDateTime localStart = tz.TZDateTime.from(
-        event.startUtc,
-        location,
-      );
-      final tz.TZDateTime localEnd = tz.TZDateTime.from(
-        event.endUtc!,
-        location,
-      );
-      double startMinute = localStart.hour * 60 + localStart.minute.toDouble();
-      if (startMinute < 12 * 60) {
-        startMinute += 24 * 60;
-      }
-      nightStartMinutes.add(startMinute);
-      wakeMinutes.add(localEnd.hour * 60 + localEnd.minute.toDouble());
-    }
+    final List<_NightSummary> nights = _buildNightSummaries(
+      events: sortedEvents,
+      startUtc: startUtc,
+      endUtc: endUtc,
+      location: location,
+    );
+    final List<double> nightStartMinutes = nights
+        .map((_NightSummary night) {
+          final tz.TZDateTime local = tz.TZDateTime.from(
+            night.startUtc,
+            location,
+          );
+          double result = local.hour * 60 + local.minute.toDouble();
+          if (result < 12 * 60) {
+            result += 24 * 60;
+          }
+          return result;
+        })
+        .toList(growable: false);
+    final List<double> wakeMinutes = nights
+        .map((_NightSummary night) {
+          final tz.TZDateTime local = tz.TZDateTime.from(
+            night.endUtc,
+            location,
+          );
+          return local.hour * 60 + local.minute.toDouble();
+        })
+        .toList(growable: false);
 
     final List<DailySleepTotal> dailyTotals = _buildDailyTotals(
       slices: slices,
@@ -159,6 +178,7 @@ class StatisticsService {
       location: location,
     );
     final List<double> totalsPerDay = dailyTotals
+        .where((DailySleepTotal item) => item.hasData)
         .map((DailySleepTotal item) => item.totalMinutes)
         .toList(growable: false);
 
@@ -175,6 +195,19 @@ class StatisticsService {
         )
         .toList(growable: false);
 
+    final bool enoughNaps =
+        napDurations.length >= StatisticsMinimums.napPatternCount;
+    final bool enoughNights =
+        nights.length >= StatisticsMinimums.nightPatternCount;
+    final bool enoughAwakeMedian =
+        awakeMinutes.length >= StatisticsMinimums.awakeMedianCount;
+    final bool enoughAwakeIqr =
+        awakeMinutes.length >= StatisticsMinimums.awakeIqrCount;
+    final bool enoughDays =
+        totalsPerDay.length >= StatisticsMinimums.dailyVariabilityCount;
+    final bool enoughPredictionErrors =
+        predictionErrors.length >= StatisticsMinimums.predictionErrorCount;
+
     return SleepStatistics(
       periodStartUtc: startUtc,
       periodEndUtc: endUtc,
@@ -182,8 +215,10 @@ class StatisticsService {
       dayMinutes: dayMinutes,
       nightMinutes: nightMinutes,
       napCount: napDurations.length,
-      averageNapMinutes: StatMath.average(napDurations),
-      medianNapMinutes: StatMath.median(napDurations),
+      nightCount: nights.length,
+      daysWithDataCount: totalsPerDay.length,
+      averageNapMinutes: enoughNaps ? StatMath.average(napDurations) : null,
+      medianNapMinutes: enoughNaps ? StatMath.median(napDurations) : null,
       shortestNapMinutes: napDurations.isEmpty
           ? null
           : napDurations.reduce(math.min),
@@ -193,21 +228,29 @@ class StatisticsService {
       longestContinuousSleepMinutes: continuousDurations.isEmpty
           ? null
           : continuousDurations.reduce(math.max),
-      medianNightStartMinuteOfDay: _normalizeMinuteOfDay(
-        StatMath.median(nightStartMinutes),
-      ),
-      medianWakeMinuteOfDay: StatMath.median(wakeMinutes),
-      medianAwakeWindowMinutes: StatMath.median(awakeMinutes),
+      medianNightStartMinuteOfDay: enoughNights
+          ? _normalizeMinuteOfDay(StatMath.median(nightStartMinutes))
+          : null,
+      medianWakeMinuteOfDay: enoughNights ? StatMath.median(wakeMinutes) : null,
+      medianAwakeWindowMinutes: enoughAwakeMedian
+          ? StatMath.median(awakeMinutes)
+          : null,
       minimumAwakeWindowMinutes: awakeMinutes.isEmpty
           ? null
           : awakeMinutes.reduce(math.min),
       maximumAwakeWindowMinutes: awakeMinutes.isEmpty
           ? null
           : awakeMinutes.reduce(math.max),
-      awakeWindowIqrMinutes: StatMath.interquartileRange(awakeMinutes),
-      dailyVariabilityMinutes: StatMath.standardDeviation(totalsPerDay),
+      awakeWindowIqrMinutes: enoughAwakeIqr
+          ? StatMath.interquartileRange(awakeMinutes)
+          : null,
+      dailyVariabilityMinutes: enoughDays
+          ? StatMath.standardDeviation(totalsPerDay)
+          : null,
       evaluablePredictionCount: predictionErrors.length,
-      medianPredictionErrorMinutes: StatMath.median(predictionErrors),
+      medianPredictionErrorMinutes: enoughPredictionErrors
+          ? StatMath.median(predictionErrors)
+          : null,
       dailyTotals: dailyTotals,
       napDurationsMinutes: napDurations,
       awakeWindowsMinutes: awakeMinutes,
@@ -268,6 +311,56 @@ class StatisticsService {
     }).length;
   }
 
+  List<_NightSummary> _buildNightSummaries({
+    required List<SleepEvent> events,
+    required DateTime startUtc,
+    required DateTime endUtc,
+    required tz.Location location,
+  }) {
+    final Map<String, List<SleepEvent>> grouped = <String, List<SleepEvent>>{};
+    for (final SleepEvent event in events) {
+      if (event.type != SleepType.night || event.endUtc == null) {
+        continue;
+      }
+      if (event.endUtc!.isBefore(startUtc) || event.startUtc.isAfter(endUtc)) {
+        continue;
+      }
+      grouped.putIfAbsent(
+        nightKey(event.startUtc, location),
+        () => <SleepEvent>[],
+      ).add(event);
+    }
+    final List<_NightSummary> result = <_NightSummary>[];
+    for (final List<SleepEvent> segments in grouped.values) {
+      segments.sort(
+        (SleepEvent a, SleepEvent b) => a.startUtc.compareTo(b.startUtc),
+      );
+      result.add(
+        _NightSummary(
+          startUtc: segments.first.startUtc,
+          endUtc: segments
+              .map((SleepEvent event) => event.endUtc!)
+              .reduce((DateTime a, DateTime b) => a.isAfter(b) ? a : b),
+        ),
+      );
+    }
+    result.sort((_NightSummary a, _NightSummary b) {
+      return a.startUtc.compareTo(b.startUtc);
+    });
+    return result;
+  }
+
+  String nightKey(DateTime utc, tz.Location location) {
+    final tz.TZDateTime local = tz.TZDateTime.from(utc, location);
+    final DateTime anchor = local.hour < 6
+        ? DateTime(local.year, local.month, local.day).subtract(
+            const Duration(days: 1),
+          )
+        : DateTime(local.year, local.month, local.day);
+    return '${anchor.year}-${anchor.month.toString().padLeft(2, '0')}-'
+        '${anchor.day.toString().padLeft(2, '0')}';
+  }
+
   List<DailySleepTotal> _buildDailyTotals({
     required List<_EventSlice> slices,
     required DateTime startUtc,
@@ -292,6 +385,7 @@ class StatisticsService {
       );
       double nap = 0;
       double night = 0;
+      bool hasData = false;
       for (final _EventSlice slice in slices) {
         final DateTime clippedStart = slice.startUtc.isAfter(day.toUtc())
             ? slice.startUtc
@@ -302,6 +396,7 @@ class StatisticsService {
         if (!clippedEnd.isAfter(clippedStart)) {
           continue;
         }
+        hasData = true;
         final double minutes =
             clippedEnd.difference(clippedStart).inSeconds / 60;
         if (slice.event.type == SleepType.nap) {
@@ -316,6 +411,7 @@ class StatisticsService {
           totalMinutes: nap + night,
           dayMinutes: nap,
           nightMinutes: night,
+          hasData: hasData,
         ),
       );
       day = nextDay;
@@ -343,4 +439,11 @@ class _EventSlice {
   final DateTime endUtc;
 
   double get minutes => endUtc.difference(startUtc).inSeconds / 60;
+}
+
+class _NightSummary {
+  const _NightSummary({required this.startUtc, required this.endUtc});
+
+  final DateTime startUtc;
+  final DateTime endUtc;
 }
