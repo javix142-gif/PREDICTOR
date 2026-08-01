@@ -48,6 +48,21 @@ jobs:
         working-directory: sueno-bebe
         run: flutter pub get
 
+      - name: Corregir const inválidos y conservar cambios
+        shell: bash
+        run: |
+          set -euo pipefail
+          sed -i 's/return const Scaffold(/return Scaffold(/' sueno-bebe/lib/app.dart
+          sed -i 's/throw const StateError(/throw StateError(/g' sueno-bebe/lib/controllers/app_controller.dart
+          dart format sueno-bebe/lib/app.dart sueno-bebe/lib/controllers/app_controller.dart
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add sueno-bebe/lib/app.dart sueno-bebe/lib/controllers/app_controller.dart
+          if ! git diff --cached --quiet; then
+            git commit -m 'Corregir constructores no constantes de Sueño Bebé'
+            git push origin HEAD:main
+          fi
+
       - name: Verificar formato
         working-directory: sueno-bebe
         run: dart format --output=none --set-exit-if-changed .
