@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:sueno_bebe/controllers/app_controller.dart';
 import 'package:sueno_bebe/models/baby_profile.dart';
@@ -50,7 +51,10 @@ Widget withController(
 }
 
 void main() {
-  setUpAll(tz_data.initializeTimeZones);
+  setUpAll(() async {
+    tz_data.initializeTimeZones();
+    await initializeDateFormatting('es');
+  });
 
   testWidgets('Hoy funciona con texto 1.5 y muestra despertar nocturno', (
     WidgetTester tester,
