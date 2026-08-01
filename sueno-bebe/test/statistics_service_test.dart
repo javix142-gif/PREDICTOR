@@ -162,33 +162,36 @@ void main() {
     expect(after.totalMinutes, 120);
   });
 
-  test('días sin registros quedan como sin datos y no entran en variabilidad', () {
-    final DateTime now = DateTime.utc(2026, 8, 1, 12);
-    final List<SleepEvent> events = <SleepEvent>[
-      sleep(
-        id: 'day-a',
-        start: DateTime.utc(2026, 7, 29, 10),
-        end: DateTime.utc(2026, 7, 29, 11),
-      ),
-      sleep(
-        id: 'day-c',
-        start: DateTime.utc(2026, 7, 31, 10),
-        end: DateTime.utc(2026, 7, 31, 12),
-      ),
-    ];
+  test(
+    'días sin registros quedan como sin datos y no entran en variabilidad',
+    () {
+      final DateTime now = DateTime.utc(2026, 8, 1, 12);
+      final List<SleepEvent> events = <SleepEvent>[
+        sleep(
+          id: 'day-a',
+          start: DateTime.utc(2026, 7, 29, 10),
+          end: DateTime.utc(2026, 7, 29, 11),
+        ),
+        sleep(
+          id: 'day-c',
+          start: DateTime.utc(2026, 7, 31, 10),
+          end: DateTime.utc(2026, 7, 31, 12),
+        ),
+      ];
 
-    final result = service.calculate(
-      events: events,
-      predictions: const <SleepPrediction>[],
-      period: const Duration(days: 4),
-      nowUtc: now,
-      location: utc,
-    );
+      final result = service.calculate(
+        events: events,
+        predictions: const <SleepPrediction>[],
+        period: const Duration(days: 4),
+        nowUtc: now,
+        location: utc,
+      );
 
-    expect(result.daysWithDataCount, 2);
-    expect(result.dailyTotals.any((day) => !day.hasData), isTrue);
-    expect(result.dailyVariabilityMinutes, isNull);
-  });
+      expect(result.daysWithDataCount, 2);
+      expect(result.dailyTotals.any((day) => !day.hasData), isTrue);
+      expect(result.dailyVariabilityMinutes, isNull);
+    },
+  );
 
   test('variabilidad aparece solo con tres días con datos', () {
     final DateTime now = DateTime.utc(2026, 8, 1, 12);
