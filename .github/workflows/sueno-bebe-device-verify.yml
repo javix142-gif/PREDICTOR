@@ -83,6 +83,28 @@ jobs:
             stat --format='size=%s' "$apk" | tee -a "$report"
           done
 
+      - name: Preparar entrega arm64
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p handoff
+          source_apk='sueno-bebe/build/app/outputs/flutter-apk/app-arm64-v8a-debug.apk'
+          target_apk='handoff/sueno_bebe_1.0.0-arm64-v8a-debug.apk'
+          cp "$source_apk" "$target_apk"
+          test -s "$target_apk"
+          sha256sum "$target_apk" | tee handoff/SHA256.txt
+          stat --format='%s' "$target_apk" | tee handoff/SIZE.txt
+          cp .github/sueno-bebe-device-report.txt handoff/VERIFICACION_ANDROID.txt
+
+      - name: Publicar APK arm64 verificado
+        uses: actions/upload-artifact@v4
+        with:
+          name: sueno_bebe_1.0.0-arm64-v8a-debug
+          path: handoff/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
       - name: Instalar y abrir en emulador Android
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -99,27 +121,3 @@ jobs:
             sleep 5
             adb shell pidof cl.javiersanmartin.suenobebe | tee .github/sueno-bebe-adb-pid.txt
             test -s .github/sueno-bebe-adb-pid.txt
-
-      - name: Preparar entrega arm64
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p handoff
-          source_apk='sueno-bebe/build/app/outputs/flutter-apk/app-arm64-v8a-debug.apk'
-          target_apk='handoff/sueno_bebe_1.0.0-arm64-v8a-debug.apk'
-          cp "$source_apk" "$target_apk"
-          test -s "$target_apk"
-          sha256sum "$target_apk" | tee handoff/SHA256.txt
-          stat --format='%s' "$target_apk" | tee handoff/SIZE.txt
-          cp .github/sueno-bebe-device-report.txt handoff/VERIFICACION_ANDROID.txt
-          cp .github/sueno-bebe-adb-install.txt handoff/ADB_INSTALL.txt
-          cp .github/sueno-bebe-adb-start.txt handoff/ADB_START.txt
-
-      - name: Publicar APK arm64 verificado
-        uses: actions/upload-artifact@v4
-        with:
-          name: sueno_bebe_1.0.0-arm64-v8a-debug
-          path: handoff/
-          if-no-files-found: error
-          compression-level: 0
-          retention-days: 14
