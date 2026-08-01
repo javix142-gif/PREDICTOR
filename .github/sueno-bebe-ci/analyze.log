@@ -1,8 +1,20 @@
+Resolving dependencies...
+Downloading packages...
+  dbus 0.7.13 (0.7.14 available)
+  hooks 2.0.2 (2.1.0 available)
+  intl 0.20.2 (0.20.3 available)
+  matcher 0.12.19 (0.12.20 available)
+  meta 1.18.0 (1.19.0 available)
+  record_use 0.6.0 (1.0.0 available)
+  test_api 0.7.11 (0.7.13 available)
+  vector_math 2.2.0 (2.4.2 available)
+Got dependencies!
+8 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
 Analyzing sueno-bebe...                                         
 
-  error • The constructor being called isn't a const constructor. Try removing 'const' from the constructor invocation • lib/app.dart:85:16 • const_with_non_const
-  error • The constructor being called isn't a const constructor. Try removing 'const' from the constructor invocation • lib/controllers/app_controller.dart:205:13 • const_with_non_const
-  error • The constructor being called isn't a const constructor. Try removing 'const' from the constructor invocation • lib/controllers/app_controller.dart:232:29 • const_with_non_const
-  error • The constructor being called isn't a const constructor. Try removing 'const' from the constructor invocation • lib/controllers/app_controller.dart:528:25 • const_with_non_const
+  error • The named parameter 'daysWithDataCount' is required, but there's no corresponding argument. Try adding the required argument • lib/services/statistics_service.dart:178:12 • missing_required_argument
+  error • The named parameter 'nightCount' is required, but there's no corresponding argument. Try adding the required argument • lib/services/statistics_service.dart:178:12 • missing_required_argument
+  error • The named parameter 'hasData' is required, but there's no corresponding argument. Try adding the required argument • lib/services/statistics_service.dart:314:9 • missing_required_argument
 
-4 issues found. (ran in 13.6s)
+3 issues found. (ran in 13.4s)

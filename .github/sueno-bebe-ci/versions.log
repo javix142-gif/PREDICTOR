@@ -1,6 +1,6 @@
 Flutter 3.44.8 • channel stable • https://github.com/flutter/flutter.git
-Framework • revision 058e0af2c2 (8 days ago) • 2026-07-23 10:56:21 -0700
-Engine • hash 13ffd72b2f9a5ca4db2a74ea52d5353ec2e8f939 (revision 0cd610717b) (8 days ago) • 2026-07-23 16:11:34.000Z
+Framework • revision 058e0af2c2 (9 days ago) • 2026-07-23 10:56:21 -0700
+Engine • hash 13ffd72b2f9a5ca4db2a74ea52d5353ec2e8f939 (revision 0cd610717b) (9 days ago) • 2026-07-23 16:11:34.000Z
 Tools • Dart 3.12.2 • DevTools 2.57.0
 Dart SDK version: 3.12.2 (stable) (Tue Jun 9 01:11:39 2026 -0700) on "linux_x64"
 openjdk version "17.0.19" 2026-04-21
