@@ -1,0 +1,8 @@
+Analyzing sueno-bebe...                                         
+
+  error • The constructor being called isn't a const constructor. Try removing 'const' from the constructor invocation • lib/app.dart:85:16 • const_with_non_const
+  error • The constructor being called isn't a const constructor. Try removing 'const' from the constructor invocation • lib/controllers/app_controller.dart:205:13 • const_with_non_const
+  error • The constructor being called isn't a const constructor. Try removing 'const' from the constructor invocation • lib/controllers/app_controller.dart:232:29 • const_with_non_const
+  error • The constructor being called isn't a const constructor. Try removing 'const' from the constructor invocation • lib/controllers/app_controller.dart:528:25 • const_with_non_const
+
+4 issues found. (ran in 13.6s)
