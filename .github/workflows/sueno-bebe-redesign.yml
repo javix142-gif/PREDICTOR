@@ -44,31 +44,33 @@ jobs:
           cache: true
           pub-cache: true
 
-      - name: Corregir clasificación nocturna pendiente
+      - name: Completar corrección nocturna e import requerido
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
+          import re
 
           prediction = Path('sueno-bebe/lib/services/prediction_service.dart')
           text = prediction.read_text(encoding='utf-8')
-          old = """  SleepType _suggestType(DateTime wakeUtc, tz.Location location, int sequence) {
-            final tz.TZDateTime local = tz.TZDateTime.from(wakeUtc, location);
-            return local.hour >= 17 || sequence >= 5 ? SleepType.night : SleepType.nap;
-          }
-          """
-          new = """  SleepType _suggestType(DateTime wakeUtc, tz.Location location, int sequence) {
+          pattern = re.compile(
+              r"  SleepType _suggestType\(DateTime wakeUtc, tz\.Location location, int sequence\) \{.*?\n  \}\n\n  bool _isStale",
+              re.S,
+          )
+          replacement = """  SleepType _suggestType(DateTime wakeUtc, tz.Location location, int sequence) {
             final tz.TZDateTime local = tz.TZDateTime.from(wakeUtc, location);
             if (local.hour >= 18 || local.hour < 6) {
               return SleepType.night;
             }
             return sequence >= 5 ? SleepType.night : SleepType.nap;
           }
-          """
-          if old not in text:
-              raise SystemExit('No se encontró la regla nocturna esperada')
-          prediction.write_text(text.replace(old, new), encoding='utf-8')
+
+          bool _isStale"""
+          text, count = pattern.subn(replacement, text, count=1)
+          if count != 1:
+              raise SystemExit('No se pudo reemplazar de forma única _suggestType')
+          prediction.write_text(text, encoding='utf-8')
 
           status = Path('sueno-bebe/lib/widgets/current_status_card.dart')
           status_text = status.read_text(encoding='utf-8')
@@ -82,7 +84,12 @@ jobs:
 
       - name: Aplicar formato Dart
         working-directory: sueno-bebe
-        run: dart format lib test integration_test 2>/dev/null || dart format lib test
+        run: |
+          if [ -d integration_test ]; then
+            dart format lib test integration_test
+          else
+            dart format lib test
+          fi
 
       - name: Verificar formato sin cambios
         working-directory: sueno-bebe
@@ -145,8 +152,8 @@ jobs:
           - Cobertura de seguimiento antes de comparar rangos de 24 horas.
           - Días sin registros representados como “sin datos” y excluidos de promedios, medianas, tendencias y variabilidad.
           - Mínimos estadísticos explícitos para siestas, noches, ventanas, IQR, variabilidad y error predictivo.
-          - Pantalla Hoy compacta con jerarquía de estado, cronómetro, acción, predicción, resumen y últimos registros.
-          - Estadísticas organizadas en secciones plegables y gráfico diario de hasta siete fechas.
+          - Pantalla Hoy compacta con estado, cronómetro, acción, predicción, resumen y últimos registros.
+          - Estadísticas en secciones plegables y gráfico diario de hasta siete fechas.
           - Historial compacto con resumen diario, duración prioritaria y chips.
           - Formulario con selector segmentado, accesos rápidos y duración calculada.
           - Tema Material 3 centralizado y adaptación a escalas de texto 1.0, 1.3 y 1.5.
@@ -155,7 +162,7 @@ jobs:
 
           - No se modificó el esquema SQLite.
           - No se eliminan ni fusionan eventos nocturnos en la base de datos.
-          - La decisión explícita “Terminó la noche” se guarda como preferencia no crítica.
+          - “Terminó la noche” se guarda como preferencia no crítica.
           - Se mantienen `POST_NOTIFICATIONS` y `RECEIVE_BOOT_COMPLETED` como únicos permisos principales.
 
           ## Validación ejecutada
@@ -163,7 +170,7 @@ jobs:
           - `flutter pub get`: aprobado.
           - `dart format --output=none --set-exit-if-changed .`: aprobado.
           - `flutter analyze`: aprobado.
-          - `flutter test`: aprobado, conservando las pruebas previas y agregando pruebas funcionales y de widgets.
+          - `flutter test`: aprobado.
           - `python tool/static_validate.py`: aprobado.
           - `flutter build apk --debug --split-per-abi`: aprobado.
           - `apksigner verify`: aprobado para APK ARM64 debug.
