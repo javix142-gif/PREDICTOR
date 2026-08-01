@@ -83,6 +83,7 @@ void main() {
     expect(result.averageNapMinutes, isNull);
     expect(result.medianAwakeWindowMinutes, isNull);
     expect(result.hasSleepData, isFalse);
+    expect(result.dailyTotals.every((day) => !day.hasData), isTrue);
   });
 
   test('10. calcula estadísticas de varios días y separa día/noche', () {
@@ -127,10 +128,7 @@ void main() {
     expect(result.averageNapMinutes, 75);
     expect(result.medianNapMinutes, 75);
     expect(result.longestContinuousSleepMinutes, 510);
-    expect(
-      result.dailyTotals.where((day) => day.totalMinutes > 0),
-      hasLength(3),
-    );
+    expect(result.dailyTotals.where((day) => day.hasData), hasLength(3));
   });
 
   test('17. una modificación recalcula los totales', () {
@@ -162,5 +160,126 @@ void main() {
 
     expect(before.totalMinutes, 60);
     expect(after.totalMinutes, 120);
+  });
+
+  test('días sin registros quedan como sin datos y no entran en variabilidad', () {
+    final DateTime now = DateTime.utc(2026, 8, 1, 12);
+    final List<SleepEvent> events = <SleepEvent>[
+      sleep(
+        id: 'day-a',
+        start: DateTime.utc(2026, 7, 29, 10),
+        end: DateTime.utc(2026, 7, 29, 11),
+      ),
+      sleep(
+        id: 'day-c',
+        start: DateTime.utc(2026, 7, 31, 10),
+        end: DateTime.utc(2026, 7, 31, 12),
+      ),
+    ];
+
+    final result = service.calculate(
+      events: events,
+      predictions: const <SleepPrediction>[],
+      period: const Duration(days: 4),
+      nowUtc: now,
+      location: utc,
+    );
+
+    expect(result.daysWithDataCount, 2);
+    expect(result.dailyTotals.any((day) => !day.hasData), isTrue);
+    expect(result.dailyVariabilityMinutes, isNull);
+  });
+
+  test('variabilidad aparece solo con tres días con datos', () {
+    final DateTime now = DateTime.utc(2026, 8, 1, 12);
+    final List<SleepEvent> events = <SleepEvent>[
+      sleep(
+        id: 'd1',
+        start: DateTime.utc(2026, 7, 29, 10),
+        end: DateTime.utc(2026, 7, 29, 11),
+      ),
+      sleep(
+        id: 'd2',
+        start: DateTime.utc(2026, 7, 30, 10),
+        end: DateTime.utc(2026, 7, 30, 11, 30),
+      ),
+      sleep(
+        id: 'd3',
+        start: DateTime.utc(2026, 7, 31, 10),
+        end: DateTime.utc(2026, 7, 31, 12),
+      ),
+    ];
+
+    final result = service.calculate(
+      events: events,
+      predictions: const <SleepPrediction>[],
+      period: const Duration(days: 4),
+      nowUtc: now,
+      location: utc,
+    );
+
+    expect(result.daysWithDataCount, 3);
+    expect(result.dailyVariabilityMinutes, isNotNull);
+  });
+
+  test('media y mediana de siestas requieren dos siestas', () {
+    final DateTime now = DateTime.utc(2026, 8, 1, 12);
+    final SleepEvent first = sleep(
+      id: 'one-nap',
+      start: now.subtract(const Duration(hours: 2)),
+      end: now.subtract(const Duration(hours: 1)),
+    );
+    final one = service.calculate(
+      events: <SleepEvent>[first],
+      predictions: const <SleepPrediction>[],
+      period: const Duration(hours: 24),
+      nowUtc: now,
+      location: utc,
+    );
+    final two = service.calculate(
+      events: <SleepEvent>[
+        first,
+        sleep(
+          id: 'two-nap',
+          start: now.subtract(const Duration(hours: 5)),
+          end: now.subtract(const Duration(hours: 4, minutes: 30)),
+        ),
+      ],
+      predictions: const <SleepPrediction>[],
+      period: const Duration(hours: 24),
+      nowUtc: now,
+      location: utc,
+    );
+
+    expect(one.averageNapMinutes, isNull);
+    expect(one.medianNapMinutes, isNull);
+    expect(two.averageNapMinutes, isNotNull);
+    expect(two.medianNapMinutes, isNotNull);
+  });
+
+  test('una reanudación nocturna de un minuto no crea ventana despierto', () {
+    final DateTime now = DateTime.utc(2026, 8, 1, 6);
+    final List<SleepEvent> events = <SleepEvent>[
+      sleep(
+        id: 'night-part-1',
+        start: DateTime.utc(2026, 7, 31, 22),
+        end: DateTime.utc(2026, 8, 1, 2),
+        type: SleepType.night,
+      ),
+      sleep(
+        id: 'night-part-2',
+        start: DateTime.utc(2026, 8, 1, 2, 1),
+        end: DateTime.utc(2026, 8, 1, 6),
+        type: SleepType.night,
+      ),
+    ];
+
+    final windows = service.buildAwakeWindows(
+      events: events,
+      nowUtc: now,
+      location: utc,
+    );
+
+    expect(windows, isEmpty);
   });
 }
