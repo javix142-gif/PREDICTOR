@@ -44,7 +44,8 @@ class CurrentStatusCard extends StatelessWidget {
 
     return Semantics(
       container: true,
-      label: '$stateLabel. $elapsedLabel ${elapsed == null ? '' : AppDateTimeUtils.formatDuration(elapsed)}',
+      label:
+          '$stateLabel. $elapsedLabel ${elapsed == null ? '' : AppDateTimeUtils.formatDuration(elapsed)}',
       child: Card(
         child: Padding(
           padding: const EdgeInsets.all(18),
@@ -84,7 +85,9 @@ class CurrentStatusCard extends StatelessWidget {
                     : AppDateTimeUtils.formatDuration(elapsed),
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.w800,
-                  fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
+                  fontFeatures: const <FontFeature>[
+                    FontFeature.tabularFigures(),
+                  ],
                 ),
               ),
               if (isNightAwakening) ...<Widget>[
