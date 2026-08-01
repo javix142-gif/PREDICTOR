@@ -202,7 +202,7 @@ class AppController extends ChangeNotifier {
   Future<void> startSleep({SleepType? type}) async {
     final BabyProfile current = _requireProfile();
     if (openEvent != null) {
-      throw const StateError('Ya existe un sueño en curso.');
+      throw StateError('Ya existe un sueño en curso.');
     }
     final DateTime now = _nowProvider().toUtc();
     final SleepEvent event = SleepEvent(
@@ -229,7 +229,7 @@ class AppController extends ChangeNotifier {
 
   Future<void> finishSleep() async {
     final SleepEvent current =
-        openEvent ?? (throw const StateError('No existe un sueño en curso.'));
+        openEvent ?? (throw StateError('No existe un sueño en curso.'));
     final DateTime now = _nowProvider().toUtc();
     final SleepEvent completed = current.copyWith(
       endUtc: now,
@@ -525,7 +525,7 @@ class AppController extends ChangeNotifier {
   }
 
   BabyProfile _requireProfile() =>
-      profile ?? (throw const StateError('Primero crea el perfil del bebé.'));
+      profile ?? (throw StateError('Primero crea el perfil del bebé.'));
 
   void _validateBirthDate(DateTime birthDate) {
     final DateTime now = _nowProvider().toUtc();
