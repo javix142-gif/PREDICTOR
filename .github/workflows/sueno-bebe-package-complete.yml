@@ -1,0 +1,204 @@
+name: Paquete completo Sueño Bebé
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sueno-bebe-package-complete.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package-complete:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Registrar ejecución
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "$GITHUB_RUN_ID" > .github/sueno-bebe-complete-run-id
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/sueno-bebe-complete-run-id
+          git commit -m "Registrar paquete completo Sueño Bebé $GITHUB_RUN_ID"
+          git push origin HEAD:main
+
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Configurar Flutter 3.44.8
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          channel: stable
+          cache: true
+          pub-cache: true
+
+      - name: Resolver dependencias
+        working-directory: sueno-bebe
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter pub get 2>&1 | tee ../pub-get.log
+
+      - name: Verificar formato
+        working-directory: sueno-bebe
+        shell: bash
+        run: |
+          set -o pipefail
+          dart format --output=none --set-exit-if-changed . 2>&1 | tee ../format.log
+
+      - name: Analizar
+        working-directory: sueno-bebe
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter analyze 2>&1 | tee ../analyze.log
+
+      - name: Probar
+        working-directory: sueno-bebe
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter test 2>&1 | tee ../test.log
+
+      - name: Compilar APK por arquitectura
+        working-directory: sueno-bebe
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter build apk --debug --split-per-abi 2>&1 | tee ../build.log
+
+      - name: Verificar APK ARM64
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk='sueno-bebe/build/app/outputs/flutter-apk/app-arm64-v8a-debug.apk'
+          test -s "$apk"
+          build_tools="$(find "${ANDROID_SDK_ROOT:-$ANDROID_HOME}/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          "$build_tools/apksigner" verify --verbose --print-certs "$apk" 2>&1 | tee apksigner.log
+          "$build_tools/zipalign" -c -P 16 -v 4 "$apk" 2>&1 | tee zipalign.log
+          "$build_tools/aapt" dump badging "$apk" 2>&1 | tee manifest-badging.log
+
+      - name: Preparar paquete completo
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/sueno_bebe_1.0.0-completo"
+          mkdir -p \
+            "$root/APK" \
+            "$root/PROYECTO_FUENTE" \
+            "$root/DESARROLLO_GITHUB/workflows" \
+            "$root/INFORMES_VALIDACION"
+
+          apk_source='sueno-bebe/build/app/outputs/flutter-apk/app-arm64-v8a-debug.apk'
+          apk_target="$root/APK/sueno_bebe_1.0.0-arm64-v8a-debug.apk"
+          cp "$apk_source" "$apk_target"
+          test -s "$apk_target"
+
+          (
+            cd "$root/APK"
+            zip -9 'sueno_bebe_1.0.0-arm64-v8a-debug-solo-apk.zip' \
+              'sueno_bebe_1.0.0-arm64-v8a-debug.apk'
+          )
+
+          rsync -a \
+            --exclude='.dart_tool/' \
+            --exclude='build/' \
+            --exclude='.idea/' \
+            --exclude='*.iml' \
+            sueno-bebe/ "$root/PROYECTO_FUENTE/sueno-bebe/"
+
+          find .github/workflows -maxdepth 1 -type f -name 'sueno-bebe*.yml' \
+            -exec cp {} "$root/DESARROLLO_GITHUB/workflows/" \;
+
+          cp pub-get.log format.log analyze.log test.log build.log \
+            apksigner.log zipalign.log manifest-badging.log \
+            "$root/INFORMES_VALIDACION/"
+
+          cat > "$root/README_ENTREGA.txt" <<'EOF'
+          PAQUETE COMPLETO — SUEÑO BEBÉ 1.0.0
+
+          Contenido:
+          - APK/sueno_bebe_1.0.0-arm64-v8a-debug.apk
+            APK debug para teléfonos Android ARM64.
+          - APK/sueno_bebe_1.0.0-arm64-v8a-debug-solo-apk.zip
+            El mismo APK dentro de un ZIP independiente.
+          - PROYECTO_FUENTE/sueno-bebe/
+            Proyecto Flutter completo y actualizado.
+          - DESARROLLO_GITHUB/workflows/
+            Workflows de GitHub Actions relacionados con la aplicación.
+          - INFORMES_VALIDACION/
+            Registros de dependencias, formato, análisis, pruebas, build,
+            firma, alineación y manifiesto Android.
+          - SHA256SUMS.txt
+            Sumas SHA-256 de todos los archivos entregados.
+
+          Compilación:
+          - Flutter 3.44.8 estable
+          - Java 17
+          - Variante debug
+          - Arquitectura arm64-v8a
+          - applicationId: cl.javiersanmartin.suenobebe
+          - versionName: 1.0.0
+          - versionCode: 1
+          - minSdk: 24
+
+          Para instalar, extraiga el APK de la carpeta APK y ábralo desde
+          el gestor de archivos de Android. No instale el ZIP.
+          EOF
+
+          cat > "$root/INFORMES_VALIDACION/RESUMEN_BUILD.txt" <<EOF
+          Fecha UTC: $(date -u '+%Y-%m-%dT%H:%M:%SZ')
+          Repositorio: $GITHUB_REPOSITORY
+          Rama: $GITHUB_REF_NAME
+          Commit inicial del runner: $GITHUB_SHA
+          Ejecución: $GITHUB_RUN_ID
+          Flutter: 3.44.8 estable
+          Java: 17
+          flutter pub get: APROBADO
+          dart format --output=none --set-exit-if-changed .: APROBADO
+          flutter analyze: APROBADO
+          flutter test: APROBADO
+          flutter build apk --debug --split-per-abi: APROBADO
+          apksigner verify: APROBADO
+          zipalign -P 16: APROBADO
+          APK probado en teléfono físico: NO
+          EOF
+
+          (
+            cd "$root"
+            find . -type f ! -name SHA256SUMS.txt -print0 \
+              | sort -z \
+              | xargs -0 sha256sum > SHA256SUMS.txt
+          )
+
+          mkdir -p handoff
+          archive='handoff/sueno_bebe_1.0.0-completo.zip'
+          (
+            cd "$RUNNER_TEMP"
+            zip -9 -r "$GITHUB_WORKSPACE/$archive" 'sueno_bebe_1.0.0-completo'
+          )
+          test -s "$archive"
+          unzip -t "$archive"
+          sha256sum "$archive" | tee handoff/SHA256_PAQUETE_COMPLETO.txt
+          stat --format='%s' "$archive" | tee handoff/TAMANO_PAQUETE_COMPLETO.txt
+
+      - name: Publicar paquete completo
+        uses: actions/upload-artifact@v4
+        with:
+          name: sueno_bebe_1.0.0-completo
+          path: handoff/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
