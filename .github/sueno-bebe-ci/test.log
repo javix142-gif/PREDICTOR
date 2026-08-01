@@ -12,6 +12,12 @@ Got dependencies!
 8 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
 
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: 1. calcula la duración de un evento finalizado
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: 2. permite un evento que cruza medianoche
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: 4. detecta superposición entre eventos
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: 18. rechaza término anterior o igual al inicio
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: rechaza un inicio futuro fuera de la tolerancia de reloj
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: los eventos contiguos no se consideran superpuestos
 ::group::❌ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/tracking_coverage_test.dart: cobertura inferior a 24 horas no permite comparar (failed)
 Bad state: The SharedPreferencesAsyncPlatform instance must be set.
 package:shared_preferences/src/shared_preferences_async.dart 25:7  new SharedPreferencesAsync
@@ -24,18 +30,12 @@ package:shared_preferences/src/shared_preferences_async.dart 25:7  new SharedPre
 package:sueno_bebe/controllers/app_controller.dart 43:38           new AppController
 test/tracking_coverage_test.dart 65:38                             main.<fn>
 ::endgroup::
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: 1. calcula la duración de un evento finalizado
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: 2. permite un evento que cruza medianoche
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: 4. detecta superposición entre eventos
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: 18. rechaza término anterior o igual al inicio
 ::group::❌ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/tracking_coverage_test.dart: a las 02:00 el último tramo nocturno produce despertar nocturno (failed)
 Bad state: The SharedPreferencesAsyncPlatform instance must be set.
 package:shared_preferences/src/shared_preferences_async.dart 25:7  new SharedPreferencesAsync
 package:sueno_bebe/controllers/app_controller.dart 43:38           new AppController
 test/tracking_coverage_test.dart 93:38                             main.<fn>
 ::endgroup::
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: rechaza un inicio futuro fuera de la tolerancia de reloj
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/sleep_event_validation_test.dart: los eventos contiguos no se consideran superpuestos
 ::group::❌ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/tracking_coverage_test.dart: a las 07:00 el despertar nocturno deja de estar activo (failed)
 Bad state: The SharedPreferencesAsyncPlatform instance must be set.
 package:shared_preferences/src/shared_preferences_async.dart 25:7  new SharedPreferencesAsync
@@ -115,7 +115,6 @@ package:matcher                                     expect
 package:flutter_test/src/widget_tester.dart 473:18  expect
 test/prediction_service_test.dart 226:5             main.<fn>
 ::endgroup::
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/redesign_widget_test.dart: Estadísticas usa secciones y una columna con texto 1.5
 ::group::❌ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/prediction_service_test.dart: un minuto después del despertar sigue siendo período nocturno (failed)
 Expected: SleepType:<SleepType.night>
   Actual: SleepType:<SleepType.nap>
@@ -125,6 +124,7 @@ package:flutter_test/src/widget_tester.dart 473:18  expect
 test/prediction_service_test.dart 246:5             main.<fn>
 ::endgroup::
 ✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/prediction_service_test.dart: despertar definitivo a las 07:00 permite primera siesta
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/redesign_widget_test.dart: Estadísticas usa secciones y una columna con texto 1.5
 ✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/redesign_widget_test.dart: gráfico diario muestra ausencia cuando no hay datos
 ::group::❌ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/redesign_widget_test.dart: formulario rápido calcula diez minutos (failed)
 ══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
