@@ -4,12 +4,14 @@ class DailySleepTotal {
     required this.totalMinutes,
     required this.dayMinutes,
     required this.nightMinutes,
+    required this.hasData,
   });
 
   final DateTime localDate;
   final double totalMinutes;
   final double dayMinutes;
   final double nightMinutes;
+  final bool hasData;
 }
 
 class SleepStatistics {
@@ -20,6 +22,8 @@ class SleepStatistics {
     required this.dayMinutes,
     required this.nightMinutes,
     required this.napCount,
+    required this.nightCount,
+    required this.daysWithDataCount,
     required this.dailyTotals,
     required this.napDurationsMinutes,
     required this.awakeWindowsMinutes,
@@ -45,6 +49,8 @@ class SleepStatistics {
   final double dayMinutes;
   final double nightMinutes;
   final int napCount;
+  final int nightCount;
+  final int daysWithDataCount;
   final double? averageNapMinutes;
   final double? medianNapMinutes;
   final double? shortestNapMinutes;
