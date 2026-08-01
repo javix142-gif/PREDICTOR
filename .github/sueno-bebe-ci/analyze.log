@@ -13,8 +13,6 @@ Got dependencies!
 Try `flutter pub outdated` for more information.
 Analyzing sueno-bebe...                                         
 
-  error • The named parameter 'daysWithDataCount' is required, but there's no corresponding argument. Try adding the required argument • lib/services/statistics_service.dart:178:12 • missing_required_argument
-  error • The named parameter 'nightCount' is required, but there's no corresponding argument. Try adding the required argument • lib/services/statistics_service.dart:178:12 • missing_required_argument
-  error • The named parameter 'hasData' is required, but there's no corresponding argument. Try adding the required argument • lib/services/statistics_service.dart:314:9 • missing_required_argument
+  error • The constructor being called isn't a const constructor. Try removing 'const' from the constructor invocation • lib/app.dart:162:16 • const_with_non_const
 
-3 issues found. (ran in 13.4s)
+1 issue found. (ran in 13.3s)
