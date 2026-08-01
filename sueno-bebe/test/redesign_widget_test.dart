@@ -58,9 +58,7 @@ void main() {
     final DateTime now = DateTime.utc(2026, 8, 1, 2);
     final AppController controller = AppController(nowProvider: () => now)
       ..profile = baby(now)
-      ..events = <SleepEvent>[
-        night(DateTime.utc(2026, 7, 31, 22), now),
-      ];
+      ..events = <SleepEvent>[night(DateTime.utc(2026, 7, 31, 22), now)];
 
     await tester.pumpWidget(
       withController(controller, const TodayContent(), scale: 1.5),
