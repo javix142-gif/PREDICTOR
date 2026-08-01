@@ -149,16 +149,15 @@ class AppController extends ChangeNotifier {
 
   TrackingCoverage trackingCoverage(Duration period) {
     final BabyProfile current = _requireProfile();
-    final List<SleepEvent> completed = events
-        .where((SleepEvent event) => event.endUtc != null)
-        .toList()
-      ..sort((SleepEvent a, SleepEvent b) => a.startUtc.compareTo(b.startUtc));
+    final List<SleepEvent> completed =
+        events.where((SleepEvent event) => event.endUtc != null).toList()..sort(
+          (SleepEvent a, SleepEvent b) => a.startUtc.compareTo(b.startUtc),
+        );
     final DateTime firstRecordUtc = completed.isEmpty
         ? current.createdAtUtc
         : completed.first.startUtc;
-    final DateTime trackingStartUtc = firstRecordUtc.isAfter(
-      current.createdAtUtc,
-    )
+    final DateTime trackingStartUtc =
+        firstRecordUtc.isAfter(current.createdAtUtc)
         ? firstRecordUtc
         : current.createdAtUtc;
     final Duration tracked = nowUtc.isAfter(trackingStartUtc)
@@ -278,9 +277,8 @@ class AppController extends ChangeNotifier {
     });
   }
 
-  SleepType suggestedSleepType() => isNightPeriod
-      ? SleepType.night
-      : SleepType.nap;
+  SleepType suggestedSleepType() =>
+      isNightPeriod ? SleepType.night : SleepType.nap;
 
   Future<void> startSleep({SleepType? type}) async {
     final SleepType selected = type ?? suggestedSleepType();
@@ -296,10 +294,7 @@ class AppController extends ChangeNotifier {
     if (!isNightAwakening) {
       throw StateError('No existe un despertar nocturno pendiente.');
     }
-    await _startSleepInternal(
-      type: SleepType.night,
-      evaluatePrediction: false,
-    );
+    await _startSleepInternal(type: SleepType.night, evaluatePrediction: false);
   }
 
   Future<void> finishNight() async {
