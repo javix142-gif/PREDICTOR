@@ -35,40 +35,30 @@ class _SleepEventFormScreenState extends State<SleepEventFormScreen> {
       location,
     );
     if (event == null) {
-      _endLocal = DateTime(
-        nowLocal.year,
-        nowLocal.month,
-        nowLocal.day,
-        nowLocal.hour,
-        nowLocal.minute,
-      );
+      _endLocal = _minutePrecision(nowLocal);
       _startLocal = _endLocal!.subtract(const Duration(hours: 1));
       _type = controller.suggestedSleepType();
       _accuracy = SleepAccuracy.exact;
     } else {
       final tz.TZDateTime start = tz.TZDateTime.from(event.startUtc, location);
-      _startLocal = DateTime(
-        start.year,
-        start.month,
-        start.day,
-        start.hour,
-        start.minute,
-      );
+      _startLocal = _minutePrecision(start);
       if (event.endUtc != null) {
         final tz.TZDateTime end = tz.TZDateTime.from(event.endUtc!, location);
-        _endLocal = DateTime(
-          end.year,
-          end.month,
-          end.day,
-          end.hour,
-          end.minute,
-        );
+        _endLocal = _minutePrecision(end);
       }
       _type = event.type;
       _accuracy = event.accuracy;
       _notesController.text = event.notes ?? '';
     }
   }
+
+  DateTime _minutePrecision(DateTime value) => DateTime(
+    value.year,
+    value.month,
+    value.day,
+    value.hour,
+    value.minute,
+  );
 
   @override
   void dispose() {
@@ -80,6 +70,11 @@ class _SleepEventFormScreenState extends State<SleepEventFormScreen> {
   Widget build(BuildContext context) {
     final bool isOpen = widget.event?.isOpen ?? false;
     final AppController controller = context.watch<AppController>();
+    final Duration? duration = !isOpen && _endLocal != null
+        ? _endLocal!.difference(_startLocal)
+        : null;
+    final bool validDuration = duration == null || !duration.isNegative && duration > Duration.zero;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.event == null ? 'Agregar sueño' : 'Editar sueño'),
@@ -89,33 +84,63 @@ class _SleepEventFormScreenState extends State<SleepEventFormScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: <Widget>[
-            DropdownButtonFormField<SleepType>(
-              initialValue: _type,
-              decoration: const InputDecoration(
-                labelText: 'Tipo',
-                prefixIcon: Icon(Icons.bedtime_outlined),
-              ),
-              items: SleepType.values
-                  .map(
-                    (SleepType item) => DropdownMenuItem<SleepType>(
-                      value: item,
-                      child: Text(item.label),
-                    ),
-                  )
-                  .toList(growable: false),
-              onChanged: (SleepType? value) {
-                if (value != null) {
-                  setState(() => _type = value);
-                }
+            Text('Tipo de sueño', style: Theme.of(context).textTheme.labelLarge),
+            const SizedBox(height: 8),
+            SegmentedButton<SleepType>(
+              key: const Key('sleep-type-segmented'),
+              segments: const <ButtonSegment<SleepType>>[
+                ButtonSegment<SleepType>(
+                  value: SleepType.nap,
+                  icon: Icon(Icons.light_mode_outlined),
+                  label: Text('Siesta'),
+                ),
+                ButtonSegment<SleepType>(
+                  value: SleepType.night,
+                  icon: Icon(Icons.dark_mode_outlined),
+                  label: Text('Sueño nocturno'),
+                ),
+              ],
+              selected: <SleepType>{_type},
+              onSelectionChanged: (Set<SleepType> value) {
+                setState(() => _type = value.first);
               },
             ),
-            const SizedBox(height: 16),
+            if (!isOpen) ...<Widget>[
+              const SizedBox(height: 18),
+              Text(
+                'Accesos rápidos',
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: <Widget>[
+                  ActionChip(
+                    key: const Key('quick-now'),
+                    avatar: const Icon(Icons.schedule_rounded, size: 18),
+                    label: const Text('Ahora'),
+                    onPressed: () => _setEndNow(controller),
+                  ),
+                  for (final int minutes in <int>[5, 10, 30])
+                    ActionChip(
+                      key: Key('quick-$minutes'),
+                      label: Text('Hace $minutes min'),
+                      onPressed: () => _setStartMinutesAgo(
+                        controller,
+                        minutes,
+                      ),
+                    ),
+                ],
+              ),
+            ],
+            const SizedBox(height: 18),
             _DateTimeField(
               label: 'Inicio',
               value: _startLocal,
               onTap: () => _pickDateTime(isStart: true),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             if (isOpen)
               const Card(
                 child: ListTile(
@@ -132,6 +157,41 @@ class _SleepEventFormScreenState extends State<SleepEventFormScreen> {
                 value: _endLocal!,
                 onTap: () => _pickDateTime(isStart: false),
               ),
+            if (!isOpen) ...<Widget>[
+              const SizedBox(height: 12),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    children: <Widget>[
+                      Icon(
+                        validDuration
+                            ? Icons.timelapse_rounded
+                            : Icons.error_outline_rounded,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              'Duración calculada',
+                              style: Theme.of(context).textTheme.labelLarge,
+                            ),
+                            Text(
+                              validDuration
+                                  ? AppDateTimeUtils.formatDuration(duration!)
+                                  : 'El término debe ser posterior al inicio.',
+                              key: const Key('duration-preview'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
             DropdownButtonFormField<SleepAccuracy>(
               initialValue: _accuracy,
@@ -166,7 +226,7 @@ class _SleepEventFormScreenState extends State<SleepEventFormScreen> {
             ),
             const SizedBox(height: 24),
             FilledButton.icon(
-              onPressed: controller.isBusy ? null : _save,
+              onPressed: controller.isBusy || !validDuration ? null : _save,
               icon: const Icon(Icons.save_rounded),
               label: const Text('Guardar registro'),
             ),
@@ -174,6 +234,25 @@ class _SleepEventFormScreenState extends State<SleepEventFormScreen> {
         ),
       ),
     );
+  }
+
+  void _setEndNow(AppController controller) {
+    final tz.TZDateTime local = tz.TZDateTime.from(
+      controller.nowUtc,
+      controller.location,
+    );
+    setState(() => _endLocal = _minutePrecision(local));
+  }
+
+  void _setStartMinutesAgo(AppController controller, int minutes) {
+    final tz.TZDateTime local = tz.TZDateTime.from(
+      controller.nowUtc,
+      controller.location,
+    );
+    setState(() {
+      _endLocal = _minutePrecision(local);
+      _startLocal = _endLocal!.subtract(Duration(minutes: minutes));
+    });
   }
 
   Future<void> _pickDateTime({required bool isStart}) async {
