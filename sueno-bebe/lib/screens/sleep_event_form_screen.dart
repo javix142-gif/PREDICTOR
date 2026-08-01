@@ -52,13 +52,8 @@ class _SleepEventFormScreenState extends State<SleepEventFormScreen> {
     }
   }
 
-  DateTime _minutePrecision(DateTime value) => DateTime(
-    value.year,
-    value.month,
-    value.day,
-    value.hour,
-    value.minute,
-  );
+  DateTime _minutePrecision(DateTime value) =>
+      DateTime(value.year, value.month, value.day, value.hour, value.minute);
 
   @override
   void dispose() {
@@ -73,7 +68,8 @@ class _SleepEventFormScreenState extends State<SleepEventFormScreen> {
     final Duration? duration = !isOpen && _endLocal != null
         ? _endLocal!.difference(_startLocal)
         : null;
-    final bool validDuration = duration == null || !duration.isNegative && duration > Duration.zero;
+    final bool validDuration =
+        duration == null || !duration.isNegative && duration > Duration.zero;
 
     return Scaffold(
       appBar: AppBar(
@@ -84,7 +80,10 @@ class _SleepEventFormScreenState extends State<SleepEventFormScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: <Widget>[
-            Text('Tipo de sueño', style: Theme.of(context).textTheme.labelLarge),
+            Text(
+              'Tipo de sueño',
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
             const SizedBox(height: 8),
             SegmentedButton<SleepType>(
               key: const Key('sleep-type-segmented'),
@@ -126,10 +125,7 @@ class _SleepEventFormScreenState extends State<SleepEventFormScreen> {
                     ActionChip(
                       key: Key('quick-$minutes'),
                       label: Text('Hace $minutes min'),
-                      onPressed: () => _setStartMinutesAgo(
-                        controller,
-                        minutes,
-                      ),
+                      onPressed: () => _setStartMinutesAgo(controller, minutes),
                     ),
                 ],
               ),
