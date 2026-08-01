@@ -14,6 +14,7 @@ import '../models/baby_profile.dart';
 import '../models/sleep_event.dart';
 import '../models/sleep_prediction.dart';
 import '../models/sleep_statistics.dart';
+import '../models/tracking_coverage.dart';
 import '../services/export_service.dart';
 import '../services/notification_service.dart';
 import '../services/prediction_service.dart';
@@ -41,11 +42,13 @@ class AppController extends ChangeNotifier {
        _exportService = exportService ?? const ExportService(),
        _preferences = preferences ?? SharedPreferencesAsync(),
        _uuid = uuid ?? const Uuid(),
-       _nowProvider = nowProvider ?? DateTime.now;
+       _nowProvider = nowProvider ?? DateTime.now,
+       _clock = (nowProvider ?? DateTime.now)().toUtc();
 
   static const String _themeKey = 'theme_preference';
   static const String _notificationsEnabledKey = 'notifications_enabled';
   static const String _notificationAdvanceKey = 'notification_advance_minutes';
+  static const String _endedNightWakeKey = 'ended_night_wake_utc';
 
   final BabyRepository _babyRepository;
   final SleepRepository _sleepRepository;
@@ -72,10 +75,12 @@ class AppController extends ChangeNotifier {
   bool isBusy = false;
   String? userMessage;
   String? technicalErrorCode;
+  DateTime? _endedNightWakeUtc;
   Timer? _ticker;
-  DateTime _clock = DateTime.now().toUtc();
+  DateTime _clock;
 
   DateTime get nowUtc => _clock;
+
   SleepEvent? get openEvent {
     for (final SleepEvent event in events) {
       if (event.isOpen) {
@@ -85,7 +90,25 @@ class AppController extends ChangeNotifier {
     return null;
   }
 
+  SleepEvent? get lastCompletedEvent {
+    SleepEvent? latest;
+    for (final SleepEvent event in events) {
+      if (event.endUtc != null &&
+          (latest == null || event.endUtc!.isAfter(latest.endUtc!))) {
+        latest = event;
+      }
+    }
+    return latest;
+  }
+
+  List<SleepEvent> get recentEvents {
+    final List<SleepEvent> result = List<SleepEvent>.of(events)
+      ..sort((SleepEvent a, SleepEvent b) => b.startUtc.compareTo(a.startUtc));
+    return result.take(3).toList(growable: false);
+  }
+
   bool get hasProfile => profile != null;
+
   ThemeMode get themeMode => switch (themePreference) {
     AppThemePreference.system => ThemeMode.system,
     AppThemePreference.light => ThemeMode.light,
@@ -96,6 +119,63 @@ class AppController extends ChangeNotifier {
     final String identifier =
         profile?.timezone ?? _notificationService.timezoneIdentifier;
     return AppDateTimeUtils.safeLocation(identifier);
+  }
+
+  bool get isNightPeriod {
+    final int hour = tz.TZDateTime.from(nowUtc, location).hour;
+    return hour >= 18 || hour < 6;
+  }
+
+  bool get isNightAwakening {
+    final SleepEvent? latest = lastCompletedEvent;
+    if (!isNightPeriod ||
+        openEvent != null ||
+        latest == null ||
+        latest.type != SleepType.night ||
+        latest.endUtc == null) {
+      return false;
+    }
+    if (_endedNightWakeUtc?.isAtSameMomentAs(latest.endUtc!) ?? false) {
+      return false;
+    }
+    final String currentNight = _statisticsService.nightKey(nowUtc, location);
+    final String eventNight = _statisticsService.nightKey(
+      latest.startUtc,
+      location,
+    );
+    return currentNight == eventNight &&
+        nowUtc.difference(latest.endUtc!).inHours <= 8;
+  }
+
+  TrackingCoverage trackingCoverage(Duration period) {
+    final BabyProfile current = _requireProfile();
+    final List<SleepEvent> completed = events
+        .where((SleepEvent event) => event.endUtc != null)
+        .toList()
+      ..sort((SleepEvent a, SleepEvent b) => a.startUtc.compareTo(b.startUtc));
+    final DateTime firstRecordUtc = completed.isEmpty
+        ? current.createdAtUtc
+        : completed.first.startUtc;
+    final DateTime trackingStartUtc = firstRecordUtc.isAfter(
+      current.createdAtUtc,
+    )
+        ? firstRecordUtc
+        : current.createdAtUtc;
+    final Duration tracked = nowUtc.isAfter(trackingStartUtc)
+        ? nowUtc.difference(trackingStartUtc)
+        : Duration.zero;
+    final TrackingCoverageLevel level = tracked < period
+        ? TrackingCoverageLevel.incomplete
+        : completed.length < 3
+        ? TrackingCoverageLevel.completeFewRecords
+        : TrackingCoverageLevel.complete;
+    return TrackingCoverage(
+      level: level,
+      trackedDuration: tracked,
+      requestedPeriod: period,
+      completedEventCount: completed.length,
+      trackingStartUtc: trackingStartUtc,
+    );
   }
 
   Future<void> initialize() async {
@@ -133,6 +213,10 @@ class AppController extends ChangeNotifier {
         await _preferences.getBool(_notificationsEnabledKey) ?? false;
     notificationAdvanceMinutes =
         await _preferences.getInt(_notificationAdvanceKey) ?? 15;
+    final int? endedWake = await _preferences.getInt(_endedNightWakeKey);
+    _endedNightWakeUtc = endedWake == null
+        ? null
+        : DateTime.fromMillisecondsSinceEpoch(endedWake, isUtc: true);
   }
 
   Future<void> createProfile({
@@ -194,12 +278,48 @@ class AppController extends ChangeNotifier {
     });
   }
 
-  SleepType suggestedSleepType() {
-    final int hour = tz.TZDateTime.from(nowUtc, location).hour;
-    return hour >= 18 || hour < 6 ? SleepType.night : SleepType.nap;
-  }
+  SleepType suggestedSleepType() => isNightPeriod
+      ? SleepType.night
+      : SleepType.nap;
 
   Future<void> startSleep({SleepType? type}) async {
+    final SleepType selected = type ?? suggestedSleepType();
+    final bool evaluatePrediction =
+        !(selected == SleepType.night && isNightAwakening);
+    await _startSleepInternal(
+      type: selected,
+      evaluatePrediction: evaluatePrediction,
+    );
+  }
+
+  Future<void> resumeNightSleep() async {
+    if (!isNightAwakening) {
+      throw StateError('No existe un despertar nocturno pendiente.');
+    }
+    await _startSleepInternal(
+      type: SleepType.night,
+      evaluatePrediction: false,
+    );
+  }
+
+  Future<void> finishNight() async {
+    final SleepEvent? latest = lastCompletedEvent;
+    if (latest?.endUtc == null || !isNightAwakening) {
+      return;
+    }
+    _endedNightWakeUtc = latest!.endUtc!.toUtc();
+    await _preferences.setInt(
+      _endedNightWakeKey,
+      _endedNightWakeUtc!.millisecondsSinceEpoch,
+    );
+    await _recalculatePrediction();
+    notifyListeners();
+  }
+
+  Future<void> _startSleepInternal({
+    required SleepType type,
+    required bool evaluatePrediction,
+  }) async {
     final BabyProfile current = _requireProfile();
     if (openEvent != null) {
       throw StateError('Ya existe un sueño en curso.');
@@ -209,7 +329,7 @@ class AppController extends ChangeNotifier {
       id: _uuid.v4(),
       babyId: current.id,
       startUtc: now,
-      type: type ?? suggestedSleepType(),
+      type: type,
       accuracy: SleepAccuracy.exact,
       origin: SleepOrigin.timer,
       timezone: current.timezone,
@@ -217,10 +337,13 @@ class AppController extends ChangeNotifier {
       modifiedAtUtc: now,
     );
     await _runBusy(() async {
+      if (type == SleepType.night) {
+        await _clearEndedNightWake();
+      }
       await _sleepRepository.saveEvent(
         event,
         nowUtc: now,
-        evaluatePrediction: true,
+        evaluatePrediction: evaluatePrediction,
       );
       await _cancelPredictionNotification();
       await _reloadData();
@@ -331,6 +454,7 @@ class AppController extends ChangeNotifier {
           _themeKey,
           _notificationsEnabledKey,
           _notificationAdvanceKey,
+          _endedNightWakeKey,
         },
       );
       profile = null;
@@ -343,6 +467,7 @@ class AppController extends ChangeNotifier {
       notificationsEnabled = false;
       notificationAdvanceMinutes = 15;
       themePreference = AppThemePreference.system;
+      _endedNightWakeUtc = null;
     });
   }
 
@@ -351,6 +476,15 @@ class AppController extends ChangeNotifier {
     final SleepStatistics? stats = rolling24Hours;
     if (current == null || stats == null) {
       return 'Sin datos suficientes';
+    }
+    final TrackingCoverage coverage = trackingCoverage(
+      const Duration(hours: 24),
+    );
+    if (coverage.level == TrackingCoverageLevel.incomplete) {
+      return coverage.message;
+    }
+    if (coverage.level == TrackingCoverageLevel.completeFewRecords) {
+      return coverage.message;
     }
     final tz.TZDateTime localNow = tz.TZDateTime.from(nowUtc, location);
     final int months = AppDateTimeUtils.ageInMonths(
@@ -428,7 +562,7 @@ class AppController extends ChangeNotifier {
 
   Future<void> _recalculatePrediction() async {
     final BabyProfile? current = profile;
-    if (current == null || openEvent != null) {
+    if (current == null || openEvent != null || isNightAwakening) {
       currentPrediction = null;
       bedtimeEstimate = null;
       await _cancelPredictionNotification();
@@ -507,6 +641,11 @@ class AppController extends ChangeNotifier {
         rethrow;
       }
     }
+  }
+
+  Future<void> _clearEndedNightWake() async {
+    _endedNightWakeUtc = null;
+    await _preferences.remove(_endedNightWakeKey);
   }
 
   Future<void> _runBusy(Future<void> Function() operation) async {
