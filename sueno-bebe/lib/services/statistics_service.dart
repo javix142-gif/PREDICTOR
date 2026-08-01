@@ -117,8 +117,7 @@ class StatisticsService {
     final List<double> napDurations = slices
         .where(
           (_EventSlice slice) =>
-              slice.event.type == SleepType.nap &&
-              slice.event.endUtc != null,
+              slice.event.type == SleepType.nap && slice.event.endUtc != null,
         )
         .map((_EventSlice slice) => slice.minutes)
         .toList(growable: false);
@@ -325,10 +324,9 @@ class StatisticsService {
       if (event.endUtc!.isBefore(startUtc) || event.startUtc.isAfter(endUtc)) {
         continue;
       }
-      grouped.putIfAbsent(
-        nightKey(event.startUtc, location),
-        () => <SleepEvent>[],
-      ).add(event);
+      grouped
+          .putIfAbsent(nightKey(event.startUtc, location), () => <SleepEvent>[])
+          .add(event);
     }
     final List<_NightSummary> result = <_NightSummary>[];
     for (final List<SleepEvent> segments in grouped.values) {
@@ -353,9 +351,11 @@ class StatisticsService {
   String nightKey(DateTime utc, tz.Location location) {
     final tz.TZDateTime local = tz.TZDateTime.from(utc, location);
     final DateTime anchor = local.hour < 6
-        ? DateTime(local.year, local.month, local.day).subtract(
-            const Duration(days: 1),
-          )
+        ? DateTime(
+            local.year,
+            local.month,
+            local.day,
+          ).subtract(const Duration(days: 1))
         : DateTime(local.year, local.month, local.day);
     return '${anchor.year}-${anchor.month.toString().padLeft(2, '0')}-'
         '${anchor.day.toString().padLeft(2, '0')}';
