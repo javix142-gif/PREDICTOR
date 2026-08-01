@@ -12,6 +12,9 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
+REPOSITORY_ROOT = ROOT.parent
+WORKFLOW_PATH = REPOSITORY_ROOT / '.github/workflows/sueno-bebe-redesign.yml'
+WORKFLOW_LABEL = '../.github/workflows/sueno-bebe-redesign.yml'
 REQUIRED_FILES = {
     'pubspec.yaml',
     'analysis_options.yaml',
@@ -28,7 +31,6 @@ REQUIRED_FILES = {
     'test/prediction_service_test.dart',
     'test/sleep_event_validation_test.dart',
     'android/app/src/main/AndroidManifest.xml',
-    '.github/workflows/flutter-ci.yml',
 }
 
 
@@ -41,18 +43,21 @@ def validate_required_files(errors: list[str]) -> None:
         path = ROOT / relative
         if not path.is_file():
             fail(f'Falta archivo requerido: {relative}', errors)
+    if not WORKFLOW_PATH.is_file():
+        fail(f'Falta workflow ejecutable en la raíz: {WORKFLOW_LABEL}', errors)
 
 
 def validate_yaml_xml(errors: list[str]) -> None:
-    for relative in (
-        'pubspec.yaml',
-        'analysis_options.yaml',
-        '.github/workflows/flutter-ci.yml',
-    ):
+    yaml_files = (
+        (ROOT / 'pubspec.yaml', 'pubspec.yaml'),
+        (ROOT / 'analysis_options.yaml', 'analysis_options.yaml'),
+        (WORKFLOW_PATH, WORKFLOW_LABEL),
+    )
+    for path, label in yaml_files:
         try:
-            yaml.safe_load((ROOT / relative).read_text(encoding='utf-8'))
+            yaml.safe_load(path.read_text(encoding='utf-8'))
         except Exception as error:  # noqa: BLE001
-            fail(f'YAML inválido en {relative}: {error}', errors)
+            fail(f'YAML inválido en {label}: {error}', errors)
     for path in ROOT.glob('android/app/src/**/*.xml'):
         try:
             ET.parse(path)
@@ -325,6 +330,7 @@ def main() -> int:
         return 1
     print('VALIDACIÓN ESTÁTICA: APROBADA')
     print('- Archivos requeridos: OK')
+    print('- Workflow ejecutable en la raíz: OK')
     print('- YAML/XML: OK')
     print('- Imports relativos y delimitadores Dart: OK')
     print('- Esquema, índices y restricciones SQLite: OK')
