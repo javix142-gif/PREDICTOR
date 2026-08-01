@@ -4,6 +4,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../controllers/app_controller.dart';
 import '../models/sleep_event.dart';
+import '../services/statistics_service.dart';
 import '../utils/date_time_utils.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/sleep_timeline_item.dart';
@@ -110,6 +111,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
   }) {
     final List<Widget> children = <Widget>[];
     String? previousDateKey;
+    SleepEvent? previouslyRendered;
     for (final SleepEvent event in events) {
       final tz.TZDateTime local = tz.TZDateTime.from(
         event.startUtc,
@@ -117,31 +119,84 @@ class _TimelineScreenState extends State<TimelineScreen> {
       );
       final String dateKey = '${local.year}-${local.month}-${local.day}';
       if (dateKey != previousDateKey) {
+        final List<SleepEvent> dayEvents = events.where((SleepEvent item) {
+          final tz.TZDateTime itemLocal = tz.TZDateTime.from(
+            item.startUtc,
+            controller.location,
+          );
+          return itemLocal.year == local.year &&
+              itemLocal.month == local.month &&
+              itemLocal.day == local.day;
+        }).toList(growable: false);
+        final double totalMinutes = dayEvents.fold<double>(
+          0,
+          (double sum, SleepEvent item) =>
+              sum + item.durationAt(controller.nowUtc).inSeconds / 60,
+        );
         children.add(
           Padding(
-            padding: const EdgeInsets.fromLTRB(8, 16, 8, 6),
-            child: Text(
-              AppDateTimeUtils.formatDate(
-                event.startUtc,
-                controller.profile!.timezone,
-              ),
-              style: Theme.of(context).textTheme.titleMedium,
+            padding: const EdgeInsets.fromLTRB(8, 16, 8, 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: <Widget>[
+                Expanded(
+                  child: Text(
+                    AppDateTimeUtils.formatDate(
+                      event.startUtc,
+                      controller.profile!.timezone,
+                    ),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                Text(
+                  AppDateTimeUtils.formatMinutes(totalMinutes),
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+              ],
             ),
           ),
         );
         previousDateKey = dateKey;
+        previouslyRendered = null;
       }
       children.add(
         SleepTimelineItem(
           event: event,
           timezone: controller.profile!.timezone,
           nowUtc: controller.nowUtc,
+          isNightContinuation: _isSameNightSegment(
+            event,
+            previouslyRendered,
+            controller,
+          ),
           onEdit: () => _openForm(context, event),
           onDelete: () => _confirmDelete(context, event),
         ),
       );
+      previouslyRendered = event;
     }
     return children;
+  }
+
+  bool _isSameNightSegment(
+    SleepEvent current,
+    SleepEvent? newer,
+    AppController controller,
+  ) {
+    if (current.type != SleepType.night ||
+        newer?.type != SleepType.night ||
+        current.endUtc == null) {
+      return false;
+    }
+    final int gap = newer!.startUtc.difference(current.endUtc!).inMinutes;
+    if (gap < 0 || gap > 120) {
+      return false;
+    }
+    const StatisticsService service = StatisticsService();
+    return service.nightKey(current.startUtc, controller.location) ==
+        service.nightKey(newer.startUtc, controller.location);
   }
 
   Future<void> _selectDate(BuildContext context) async {
