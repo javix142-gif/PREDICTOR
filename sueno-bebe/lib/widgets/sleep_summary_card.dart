@@ -8,6 +8,7 @@ class SleepSummaryCard extends StatelessWidget {
     required this.statistics,
     required this.rangeLabel,
     required this.statusLabel,
+    required this.showRangeComparison,
     required this.isHighlyVariableAge,
     super.key,
   });
@@ -15,6 +16,7 @@ class SleepSummaryCard extends StatelessWidget {
   final SleepStatistics? statistics;
   final String rangeLabel;
   final String statusLabel;
+  final bool showRangeComparison;
   final bool isHighlyVariableAge;
 
   @override
@@ -22,47 +24,60 @@ class SleepSummaryCard extends StatelessWidget {
     final SleepStatistics? value = statistics;
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(
-              'Sueño en las últimas 24 horas',
-              style: Theme.of(context).textTheme.titleMedium,
+              'Resumen de 24 horas',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Text(
               AppDateTimeUtils.formatMinutes(value?.totalMinutes),
-              style: Theme.of(context).textTheme.headlineSmall,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
             ),
             const SizedBox(height: 8),
-            Text(statusLabel),
-            Text('Referencia general: $rangeLabel, incluyendo siestas.'),
-            const SizedBox(height: 6),
-            const Text(
-              'Un solo período no permite concluir que exista un problema de sueño.',
-            ),
-            const Divider(height: 28),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Expanded(
-                  child: _Part(
-                    label: 'Diurno',
-                    value: AppDateTimeUtils.formatMinutes(value?.dayMinutes),
-                  ),
+                Icon(
+                  showRangeComparison
+                      ? Icons.check_circle_outline_rounded
+                      : Icons.hourglass_bottom_rounded,
+                  size: 20,
                 ),
-                Expanded(
-                  child: _Part(
-                    label: 'Nocturno',
-                    value: AppDateTimeUtils.formatMinutes(value?.nightMinutes),
-                  ),
+                const SizedBox(width: 8),
+                Expanded(child: Text(statusLabel)),
+              ],
+            ),
+            if (showRangeComparison) ...<Widget>[
+              const SizedBox(height: 6),
+              Text('Referencia general: $rangeLabel, incluyendo siestas.'),
+            ],
+            const Divider(height: 26),
+            Wrap(
+              spacing: 24,
+              runSpacing: 12,
+              children: <Widget>[
+                _Part(
+                  label: 'Diurno',
+                  value: AppDateTimeUtils.formatMinutes(value?.dayMinutes),
+                ),
+                _Part(
+                  label: 'Nocturno',
+                  value: AppDateTimeUtils.formatMinutes(value?.nightMinutes),
                 ),
               ],
             ),
             if (isHighlyVariableAge) ...<Widget>[
               const SizedBox(height: 12),
               const Text(
-                'En menores de 4 meses los patrones pueden ser fragmentados y variables.',
+                'En menores de 4 meses los patrones suelen ser fragmentados y variables.',
               ),
             ],
           ],
@@ -80,13 +95,16 @@ class _Part extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(label, style: Theme.of(context).textTheme.labelLarge),
-        const SizedBox(height: 4),
-        Text(value),
-      ],
+    return Semantics(
+      label: '$label: $value',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(label, style: Theme.of(context).textTheme.labelLarge),
+          const SizedBox(height: 3),
+          Text(value, style: Theme.of(context).textTheme.titleMedium),
+        ],
+      ),
     );
   }
 }
