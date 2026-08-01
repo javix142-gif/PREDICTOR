@@ -5,9 +5,12 @@ class AppDateTimeUtils {
   const AppDateTimeUtils._();
 
   static tz.Location safeLocation(String identifier) {
+    if (identifier == 'UTC' || identifier == 'Etc/UTC') {
+      return tz.UTC;
+    }
     try {
       return tz.getLocation(identifier);
-    } on ArgumentError {
+    } on Object {
       return tz.UTC;
     }
   }
