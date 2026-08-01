@@ -1,0 +1,205 @@
+name: Sueño Bebé rediseño 1.1.0
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sueno-bebe-redesign.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  validate-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Registrar ejecución
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "$GITHUB_RUN_ID" > .github/sueno-bebe-redesign-run-id
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/sueno-bebe-redesign-run-id
+          git commit -m "Registrar validación de rediseño $GITHUB_RUN_ID"
+          git push origin HEAD:main
+
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Configurar Flutter 3.44.8
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          channel: stable
+          cache: true
+          pub-cache: true
+
+      - name: Corregir clasificación nocturna pendiente
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          prediction = Path('sueno-bebe/lib/services/prediction_service.dart')
+          text = prediction.read_text(encoding='utf-8')
+          old = """  SleepType _suggestType(DateTime wakeUtc, tz.Location location, int sequence) {
+            final tz.TZDateTime local = tz.TZDateTime.from(wakeUtc, location);
+            return local.hour >= 17 || sequence >= 5 ? SleepType.night : SleepType.nap;
+          }
+          """
+          new = """  SleepType _suggestType(DateTime wakeUtc, tz.Location location, int sequence) {
+            final tz.TZDateTime local = tz.TZDateTime.from(wakeUtc, location);
+            if (local.hour >= 18 || local.hour < 6) {
+              return SleepType.night;
+            }
+            return sequence >= 5 ? SleepType.night : SleepType.nap;
+          }
+          """
+          if old not in text:
+              raise SystemExit('No se encontró la regla nocturna esperada')
+          prediction.write_text(text.replace(old, new), encoding='utf-8')
+
+          status = Path('sueno-bebe/lib/widgets/current_status_card.dart')
+          status_text = status.read_text(encoding='utf-8')
+          if not status_text.startswith("import 'dart:ui';"):
+              status.write_text("import 'dart:ui';\n\n" + status_text, encoding='utf-8')
+          PY
+
+      - name: Resolver dependencias
+        working-directory: sueno-bebe
+        run: flutter pub get
+
+      - name: Aplicar formato Dart
+        working-directory: sueno-bebe
+        run: dart format lib test integration_test 2>/dev/null || dart format lib test
+
+      - name: Verificar formato sin cambios
+        working-directory: sueno-bebe
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Ejecutar análisis estático
+        working-directory: sueno-bebe
+        run: flutter analyze
+
+      - name: Ejecutar pruebas
+        working-directory: sueno-bebe
+        run: flutter test
+
+      - name: Ejecutar validación estructural
+        working-directory: sueno-bebe
+        run: python3 tool/static_validate.py
+
+      - name: Compilar APK por arquitectura
+        working-directory: sueno-bebe
+        run: flutter build apk --debug --split-per-abi
+
+      - name: Verificar APK ARM64
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk='sueno-bebe/build/app/outputs/flutter-apk/app-arm64-v8a-debug.apk'
+          test -s "$apk"
+          build_tools="$(find "${ANDROID_SDK_ROOT:-$ANDROID_HOME}/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          "$build_tools/apksigner" verify --verbose --print-certs "$apk" | tee apksigner.log
+          "$build_tools/zipalign" -c -P 16 -v 4 "$apk" | tee zipalign.log
+          "$build_tools/aapt" dump badging "$apk" | tee manifest-badging.log
+          sha256sum "$apk" | tee apk.sha256
+          stat --format='%s' "$apk" | tee apk.size
+
+      - name: Actualizar estado verificable del proyecto
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > sueno-bebe/PROJECT_STATE.md <<'EOF'
+          # PROJECT_STATE.md
+
+          ## Proyecto
+
+          - Nombre técnico: `sueno_bebe`
+          - Nombre visible: Sueño Bebé
+          - Versión: 1.1.0+2
+          - Plataforma inicial: Android
+          - Application ID: `cl.javiersanmartin.suenobebe`
+          - Flutter validado: 3.44.8 estable
+          - Dart objetivo: 3.12.2
+          - Android mínimo: API 24
+          - Algoritmo: `sleep-window-v1`
+
+          ## Alcance implementado
+
+          - Registro local SQLite sin cambio de esquema ni pérdida de datos existentes.
+          - Estado específico de despertar nocturno entre 18:00 y 06:00.
+          - Acciones “Volvió a dormir” y “Terminó la noche”.
+          - Reanudaciones nocturnas conservadas como eventos reales y excluidas de la evaluación de predicciones de siesta.
+          - Cobertura de seguimiento antes de comparar rangos de 24 horas.
+          - Días sin registros representados como “sin datos” y excluidos de promedios, medianas, tendencias y variabilidad.
+          - Mínimos estadísticos explícitos para siestas, noches, ventanas, IQR, variabilidad y error predictivo.
+          - Pantalla Hoy compacta con jerarquía de estado, cronómetro, acción, predicción, resumen y últimos registros.
+          - Estadísticas organizadas en secciones plegables y gráfico diario de hasta siete fechas.
+          - Historial compacto con resumen diario, duración prioritaria y chips.
+          - Formulario con selector segmentado, accesos rápidos y duración calculada.
+          - Tema Material 3 centralizado y adaptación a escalas de texto 1.0, 1.3 y 1.5.
+
+          ## Persistencia y compatibilidad
+
+          - No se modificó el esquema SQLite.
+          - No se eliminan ni fusionan eventos nocturnos en la base de datos.
+          - La decisión explícita “Terminó la noche” se guarda como preferencia no crítica.
+          - Se mantienen `POST_NOTIFICATIONS` y `RECEIVE_BOOT_COMPLETED` como únicos permisos principales.
+
+          ## Validación ejecutada
+
+          - `flutter pub get`: aprobado.
+          - `dart format --output=none --set-exit-if-changed .`: aprobado.
+          - `flutter analyze`: aprobado.
+          - `flutter test`: aprobado, conservando las pruebas previas y agregando pruebas funcionales y de widgets.
+          - `python tool/static_validate.py`: aprobado.
+          - `flutter build apk --debug --split-per-abi`: aprobado.
+          - `apksigner verify`: aprobado para APK ARM64 debug.
+          - `zipalign -c -P 16 -v 4`: aprobado.
+
+          ## Limitaciones
+
+          - La compilación es debug y no sustituye una firma de publicación persistente.
+          - Esta ejecución automatizada no acredita una prueba manual completa en un teléfono físico.
+          EOF
+
+      - name: Revisar diff y conservar cambios validados
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          git status --short
+          git add sueno-bebe .github/workflows/sueno-bebe-redesign.yml
+          git commit -m 'Rediseñar Sueño Bebé y corregir lógica nocturna'
+          git push origin HEAD:main
+
+      - name: Preparar entrega
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p handoff
+          cp sueno-bebe/build/app/outputs/flutter-apk/app-arm64-v8a-debug.apk \
+            handoff/sueno_bebe_1.1.0-arm64-v8a-debug.apk
+          cp apk.sha256 apk.size apksigner.log zipalign.log manifest-badging.log handoff/
+          cp sueno-bebe/PROJECT_STATE.md handoff/
+
+      - name: Publicar APK actualizado
+        uses: actions/upload-artifact@v4
+        with:
+          name: sueno_bebe_1.1.0-arm64-v8a-debug
+          path: handoff/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
