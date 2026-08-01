@@ -115,9 +115,9 @@ class TodayContent extends StatelessWidget {
       children: <Widget>[
         Text(
           profile.name,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w800,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 2),
         Text(
@@ -197,25 +197,26 @@ class TodayContent extends StatelessWidget {
               ? 'Sin referencia disponible'
               : '${range.minimumHours} a ${range.maximumHours} horas',
           statusLabel: controller.sleepRangeStatus(),
-          showRangeComparison:
-              coverage.level == TrackingCoverageLevel.complete,
+          showRangeComparison: coverage.level == TrackingCoverageLevel.complete,
           isHighlyVariableAge: underFourMonths,
         ),
         if (controller.recentEvents.isNotEmpty) ...<Widget>[
           const SizedBox(height: 18),
           Text(
             'Últimos registros',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 8),
           Card(
             child: Column(
               children: <Widget>[
-                for (int index = 0;
-                    index < controller.recentEvents.length;
-                    index += 1) ...<Widget>[
+                for (
+                  int index = 0;
+                  index < controller.recentEvents.length;
+                  index += 1
+                ) ...<Widget>[
                   _RecentEventTile(
                     event: controller.recentEvents[index],
                     timezone: profile.timezone,
@@ -384,10 +385,12 @@ class _PrimaryActions extends StatelessWidget {
       label: sleeping ? 'Finalizar sueño' : 'Iniciar sueño',
       child: FilledButton.icon(
         key: Key(sleeping ? 'finish-sleep-button' : 'start-sleep-button'),
-        onPressed: busy ? null : sleeping ? onFinish : onStart,
-        icon: Icon(
-          sleeping ? Icons.stop_rounded : Icons.play_arrow_rounded,
-        ),
+        onPressed: busy
+            ? null
+            : sleeping
+            ? onFinish
+            : onStart,
+        icon: Icon(sleeping ? Icons.stop_rounded : Icons.play_arrow_rounded),
         label: Text(sleeping ? 'Finalizar sueño' : 'Iniciar sueño'),
       ),
     );
@@ -416,9 +419,9 @@ class _RecentEventTile extends StatelessWidget {
       ),
       title: Text(
         AppDateTimeUtils.formatDuration(event.durationAt(nowUtc)),
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.w700,
-        ),
+        style: Theme.of(
+          context,
+        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
       ),
       subtitle: Text(
         '${event.type.label} · '
