@@ -205,4 +205,64 @@ void main() {
       PredictionConfidence.low,
     );
   });
+
+  test('despertar a las 02:00 mantiene tipo nocturno', () {
+    final DateTime now = DateTime.utc(2026, 8, 1, 2);
+    final SleepEvent night = completed(
+      id: 'night-0200',
+      start: DateTime.utc(2026, 7, 31, 22),
+      sleepMinutes: 240,
+      type: SleepType.night,
+    );
+
+    final SleepPrediction result = service.createPrediction(
+      id: 'night-prediction',
+      profile: profile(now),
+      events: <SleepEvent>[night],
+      nowUtc: now,
+      location: utc,
+    );
+
+    expect(result.intendedType, SleepType.night);
+  });
+
+  test('un minuto después del despertar sigue siendo período nocturno', () {
+    final DateTime now = DateTime.utc(2026, 8, 1, 2, 1);
+    final SleepEvent night = completed(
+      id: 'night-0201',
+      start: DateTime.utc(2026, 7, 31, 22),
+      sleepMinutes: 240,
+      type: SleepType.night,
+    );
+
+    final SleepPrediction result = service.createPrediction(
+      id: 'night-resume',
+      profile: profile(now),
+      events: <SleepEvent>[night],
+      nowUtc: now,
+      location: utc,
+    );
+
+    expect(result.intendedType, SleepType.night);
+  });
+
+  test('despertar definitivo a las 07:00 permite primera siesta', () {
+    final DateTime now = DateTime.utc(2026, 8, 1, 7);
+    final SleepEvent night = completed(
+      id: 'night-0700',
+      start: DateTime.utc(2026, 7, 31, 22),
+      sleepMinutes: 540,
+      type: SleepType.night,
+    );
+
+    final SleepPrediction result = service.createPrediction(
+      id: 'morning-prediction',
+      profile: profile(now),
+      events: <SleepEvent>[night],
+      nowUtc: now,
+      location: utc,
+    );
+
+    expect(result.intendedType, SleepType.nap);
+  });
 }
