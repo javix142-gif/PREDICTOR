@@ -119,15 +119,17 @@ class _TimelineScreenState extends State<TimelineScreen> {
       );
       final String dateKey = '${local.year}-${local.month}-${local.day}';
       if (dateKey != previousDateKey) {
-        final List<SleepEvent> dayEvents = events.where((SleepEvent item) {
-          final tz.TZDateTime itemLocal = tz.TZDateTime.from(
-            item.startUtc,
-            controller.location,
-          );
-          return itemLocal.year == local.year &&
-              itemLocal.month == local.month &&
-              itemLocal.day == local.day;
-        }).toList(growable: false);
+        final List<SleepEvent> dayEvents = events
+            .where((SleepEvent item) {
+              final tz.TZDateTime itemLocal = tz.TZDateTime.from(
+                item.startUtc,
+                controller.location,
+              );
+              return itemLocal.year == local.year &&
+                  itemLocal.month == local.month &&
+                  itemLocal.day == local.day;
+            })
+            .toList(growable: false);
         final double totalMinutes = dayEvents.fold<double>(
           0,
           (double sum, SleepEvent item) =>
