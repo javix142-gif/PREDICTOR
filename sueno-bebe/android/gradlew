@@ -1,0 +1,41 @@
+#!/usr/bin/env sh
+# Bootstrap reproducible de Gradle 8.13 sin depender de una instalación global.
+# Verifica SHA-256 antes de ejecutar la distribución oficial.
+set -eu
+APP_HOME=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+PROPS="$APP_HOME/gradle/wrapper/gradle-wrapper.properties"
+URL=$(sed -n 's/^distributionUrl=//p' "$PROPS" | sed 's#\\:#:#g')
+EXPECTED=$(sed -n 's/^distributionSha256Sum=//p' "$PROPS")
+VERSION=$(printf '%s' "$URL" | sed -n 's#.*gradle-\([0-9][0-9.]*\)-bin.zip#\1#p')
+BASE=${GRADLE_USER_HOME:-"$HOME/.gradle"}/wrapper/dists/manual-gradle-$VERSION
+ZIP="$BASE/gradle-$VERSION-bin.zip"
+GRADLE="$BASE/gradle-$VERSION/bin/gradle"
+mkdir -p "$BASE"
+if [ ! -x "$GRADLE" ]; then
+  if [ ! -f "$ZIP" ]; then
+    if command -v curl >/dev/null 2>&1; then
+      curl --fail --location --retry 3 --output "$ZIP" "$URL"
+    elif command -v wget >/dev/null 2>&1; then
+      wget -O "$ZIP" "$URL"
+    else
+      echo "Se requiere curl o wget para descargar Gradle." >&2
+      exit 1
+    fi
+  fi
+  if command -v sha256sum >/dev/null 2>&1; then
+    ACTUAL=$(sha256sum "$ZIP" | awk '{print $1}')
+  elif command -v shasum >/dev/null 2>&1; then
+    ACTUAL=$(shasum -a 256 "$ZIP" | awk '{print $1}')
+  else
+    echo "Se requiere sha256sum o shasum para verificar Gradle." >&2
+    exit 1
+  fi
+  if [ "$ACTUAL" != "$EXPECTED" ]; then
+    echo "El SHA-256 de Gradle no coincide; se elimina la descarga." >&2
+    rm -f "$ZIP"
+    exit 1
+  fi
+  rm -rf "$BASE/gradle-$VERSION"
+  unzip -q "$ZIP" -d "$BASE"
+fi
+exec "$GRADLE" "$@"

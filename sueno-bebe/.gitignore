@@ -1,0 +1,14 @@
+.dart_tool/
+.packages
+.pub/
+build/
+coverage/
+android/.gradle/
+android/local.properties
+android/key.properties
+*.jks
+*.keystore
+*.iml
+.idea/
+.vscode/
+.DS_Store
