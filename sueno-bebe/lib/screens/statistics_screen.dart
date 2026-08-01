@@ -56,10 +56,7 @@ class StatisticsScreen extends StatelessWidget {
                 'Los días sin registros se muestran como “sin datos”, no como cero horas.',
           )
         else
-          StatisticsSections(
-            statistics: statistics,
-            coverage: coverage,
-          ),
+          StatisticsSections(statistics: statistics, coverage: coverage),
       ],
     );
   }
@@ -174,7 +171,8 @@ class StatisticsSections extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               _SectionMetrics(
-                message: statistics.awakeWindowsMinutes.length <
+                message:
+                    statistics.awakeWindowsMinutes.length <
                         StatisticsMinimums.awakeMedianCount
                     ? 'Se necesitan al menos 3 ventanas para mostrar una mediana y 4 para el rango intercuartílico.'
                     : statistics.awakeWindowsMinutes.length <
@@ -229,7 +227,8 @@ class StatisticsSections extends StatelessWidget {
           title: 'Predicciones',
           icon: Icons.auto_graph_rounded,
           child: _SectionMetrics(
-            message: statistics.evaluablePredictionCount <
+            message:
+                statistics.evaluablePredictionCount <
                     StatisticsMinimums.predictionErrorCount
                 ? 'Se necesitan al menos 5 predicciones evaluadas para mostrar un error mediano.'
                 : null,
@@ -252,7 +251,8 @@ class StatisticsSections extends StatelessWidget {
           title: 'Calidad de datos',
           icon: Icons.fact_check_outlined,
           child: _SectionMetrics(
-            message: statistics.daysWithDataCount <
+            message:
+                statistics.daysWithDataCount <
                     StatisticsMinimums.dailyVariabilityCount
                 ? 'Se necesitan al menos 3 días con registros para calcular variabilidad diaria.'
                 : null,
@@ -271,7 +271,10 @@ class StatisticsSections extends StatelessWidget {
                   statistics.dailyVariabilityMinutes,
                 ),
               ),
-              _Metric('Cobertura', coverage.isComplete ? 'Completa' : 'Incompleta'),
+              _Metric(
+                'Cobertura',
+                coverage.isComplete ? 'Completa' : 'Incompleta',
+              ),
             ],
           ),
         ),
@@ -328,10 +331,7 @@ class _PrimaryMetrics extends StatelessWidget {
         'Sueño total',
         AppDateTimeUtils.formatMinutes(statistics.totalMinutes),
       ),
-      _Metric(
-        'Diurno',
-        AppDateTimeUtils.formatMinutes(statistics.dayMinutes),
-      ),
+      _Metric('Diurno', AppDateTimeUtils.formatMinutes(statistics.dayMinutes)),
       _Metric(
         'Nocturno',
         AppDateTimeUtils.formatMinutes(statistics.nightMinutes),
@@ -363,9 +363,9 @@ class _SectionCard extends StatelessWidget {
         leading: Icon(icon),
         title: Text(
           title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
         ),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         children: <Widget>[child],
@@ -619,8 +619,14 @@ class _DistributionBar extends StatelessWidget {
             height: 22,
             child: Row(
               children: <Widget>[
-                Expanded(flex: dayFlex, child: ColoredBox(color: dayColor)),
-                Expanded(flex: nightFlex, child: ColoredBox(color: nightColor)),
+                Expanded(
+                  flex: dayFlex,
+                  child: ColoredBox(color: dayColor),
+                ),
+                Expanded(
+                  flex: nightFlex,
+                  child: ColoredBox(color: nightColor),
+                ),
               ],
             ),
           ),
