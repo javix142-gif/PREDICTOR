@@ -30,8 +30,10 @@ class _SleepEventFormScreenState extends State<SleepEventFormScreen> {
     final AppController controller = context.read<AppController>();
     final SleepEvent? event = widget.event;
     final tz.Location location = controller.location;
-    final tz.TZDateTime nowLocal =
-        tz.TZDateTime.from(controller.nowUtc, location);
+    final tz.TZDateTime nowLocal = tz.TZDateTime.from(
+      controller.nowUtc,
+      location,
+    );
     if (event == null) {
       _endLocal = DateTime(
         nowLocal.year,
@@ -79,7 +81,9 @@ class _SleepEventFormScreenState extends State<SleepEventFormScreen> {
     final bool isOpen = widget.event?.isOpen ?? false;
     final AppController controller = context.watch<AppController>();
     return Scaffold(
-      appBar: AppBar(title: Text(widget.event == null ? 'Agregar sueño' : 'Editar sueño')),
+      appBar: AppBar(
+        title: Text(widget.event == null ? 'Agregar sueño' : 'Editar sueño'),
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -213,8 +217,10 @@ class _SleepEventFormScreenState extends State<SleepEventFormScreen> {
     }
     final AppController controller = context.read<AppController>();
     final String timezone = controller.profile!.timezone;
-    final DateTime startUtc =
-        AppDateTimeUtils.localWallClockToUtc(_startLocal, timezone);
+    final DateTime startUtc = AppDateTimeUtils.localWallClockToUtc(
+      _startLocal,
+      timezone,
+    );
     final DateTime? endUtc = widget.event?.isOpen ?? false
         ? null
         : AppDateTimeUtils.localWallClockToUtc(_endLocal!, timezone);
@@ -242,9 +248,9 @@ class _SleepEventFormScreenState extends State<SleepEventFormScreen> {
       }
     } on Object catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.toString())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.toString())));
       }
     }
   }
@@ -263,7 +269,8 @@ class _DateTimeField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String text = '${value.day.toString().padLeft(2, '0')}/'
+    final String text =
+        '${value.day.toString().padLeft(2, '0')}/'
         '${value.month.toString().padLeft(2, '0')}/${value.year} · '
         '${value.hour.toString().padLeft(2, '0')}:'
         '${value.minute.toString().padLeft(2, '0')}';

@@ -19,7 +19,7 @@ class NotificationServiceException implements Exception {
 
 class NotificationService {
   NotificationService({FlutterLocalNotificationsPlugin? plugin})
-      : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
+    : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
 
   static const int predictionNotificationId = 41001;
   static const String channelId = 'sleep_window_reminders';
@@ -60,7 +60,8 @@ class NotificationService {
       if (Platform.isAndroid) {
         final AndroidFlutterLocalNotificationsPlugin? android = _plugin
             .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin>();
+              AndroidFlutterLocalNotificationsPlugin
+            >();
         await android?.createNotificationChannel(
           const AndroidNotificationChannel(
             channelId,
@@ -85,13 +86,15 @@ class NotificationService {
       if (Platform.isAndroid) {
         final AndroidFlutterLocalNotificationsPlugin? android = _plugin
             .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin>();
+              AndroidFlutterLocalNotificationsPlugin
+            >();
         return await android?.requestNotificationsPermission() ?? true;
       }
       if (Platform.isIOS) {
         final IOSFlutterLocalNotificationsPlugin? ios = _plugin
             .resolvePlatformSpecificImplementation<
-                IOSFlutterLocalNotificationsPlugin>();
+              IOSFlutterLocalNotificationsPlugin
+            >();
         return await ios?.requestPermissions(
               alert: true,
               badge: true,
@@ -115,7 +118,8 @@ class NotificationService {
     }
     final AndroidFlutterLocalNotificationsPlugin? android = _plugin
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     return await android?.areNotificationsEnabled() ?? true;
   }
 
@@ -134,12 +138,15 @@ class NotificationService {
       return;
     }
     try {
-      final tz.TZDateTime scheduled =
-          tz.TZDateTime.from(scheduledUtc, tz.local);
+      final tz.TZDateTime scheduled = tz.TZDateTime.from(
+        scheduledUtc,
+        tz.local,
+      );
       await _plugin.zonedSchedule(
         id: predictionNotificationId,
         title: 'Ventana orientativa de sueño',
-        body: 'Se aproxima la ventana de sueño de $babyName. '
+        body:
+            'Se aproxima la ventana de sueño de $babyName. '
             'Observa sus señales de cansancio.',
         scheduledDate: scheduled,
         notificationDetails: const NotificationDetails(

@@ -27,7 +27,9 @@ class SettingsScreen extends StatelessWidget {
               subtitle: Text('Zona horaria: ${controller.profile!.timezone}'),
               trailing: const Icon(Icons.chevron_right_rounded),
               onTap: () => Navigator.of(context).push<void>(
-                MaterialPageRoute<void>(builder: (_) => const ProfileEditScreen()),
+                MaterialPageRoute<void>(
+                  builder: (_) => const ProfileEditScreen(),
+                ),
               ),
             ),
           ],
@@ -74,11 +76,8 @@ class SettingsScreen extends StatelessWidget {
                 'Se solicitará permiso antes de activarlos. La hora es aproximada.',
               ),
               value: controller.notificationsEnabled,
-              onChanged: (bool value) => _changeNotifications(
-                context,
-                controller,
-                value,
-              ),
+              onChanged: (bool value) =>
+                  _changeNotifications(context, controller, value),
             ),
             ListTile(
               enabled: controller.notificationsEnabled,
@@ -111,7 +110,9 @@ class SettingsScreen extends StatelessWidget {
               leading: const Icon(Icons.file_download_outlined),
               title: const Text('Exportar datos CSV'),
               subtitle: const Text('Incluye perfil, eventos y predicciones.'),
-              onTap: controller.isBusy ? null : () => _export(context, controller),
+              onTap: controller.isBusy
+                  ? null
+                  : () => _export(context, controller),
             ),
             ListTile(
               leading: Icon(
@@ -207,10 +208,7 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _export(
-    BuildContext context,
-    AppController controller,
-  ) async {
+  Future<void> _export(BuildContext context, AppController controller) async {
     try {
       final File file = await controller.exportData();
       await controller.shareExport(file);
@@ -276,7 +274,9 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _showError(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
@@ -297,7 +297,10 @@ class _Section extends StatelessWidget {
           children: <Widget>[
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-              child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+              child: Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
             ),
             ...children,
           ],
@@ -308,7 +311,11 @@ class _Section extends StatelessWidget {
 }
 
 class _RouteTile extends StatelessWidget {
-  const _RouteTile({required this.icon, required this.title, required this.screen});
+  const _RouteTile({
+    required this.icon,
+    required this.title,
+    required this.screen,
+  });
 
   final IconData icon;
   final String title;
@@ -320,9 +327,9 @@ class _RouteTile extends StatelessWidget {
       leading: Icon(icon),
       title: Text(title),
       trailing: const Icon(Icons.chevron_right_rounded),
-      onTap: () => Navigator.of(context).push<void>(
-        MaterialPageRoute<void>(builder: (_) => screen),
-      ),
+      onTap: () => Navigator.of(
+        context,
+      ).push<void>(MaterialPageRoute<void>(builder: (_) => screen)),
     );
   }
 }

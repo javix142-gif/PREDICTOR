@@ -112,21 +112,21 @@ class AppDatabase {
         )
       ''');
     await db.execute(
-        'CREATE INDEX idx_sleep_events_baby_start '
-        'ON sleep_events(baby_id, start_utc)',
-      );
+      'CREATE INDEX idx_sleep_events_baby_start '
+      'ON sleep_events(baby_id, start_utc)',
+    );
     await db.execute(
-        'CREATE UNIQUE INDEX idx_one_open_sleep_per_baby '
-        'ON sleep_events(baby_id) WHERE end_utc IS NULL',
-      );
+      'CREATE UNIQUE INDEX idx_one_open_sleep_per_baby '
+      'ON sleep_events(baby_id) WHERE end_utc IS NULL',
+    );
     await db.execute(
-        'CREATE INDEX idx_predictions_baby_generated '
-        'ON sleep_predictions(baby_id, generated_at_utc)',
-      );
+      'CREATE INDEX idx_predictions_baby_generated '
+      'ON sleep_predictions(baby_id, generated_at_utc)',
+    );
     await db.execute(
-        'CREATE INDEX idx_predictions_evaluation '
-        'ON sleep_predictions(baby_id, evaluated_at_utc)',
-      );
+      'CREATE INDEX idx_predictions_evaluation '
+      'ON sleep_predictions(baby_id, evaluated_at_utc)',
+    );
   }
 
   Future<void> close() async {

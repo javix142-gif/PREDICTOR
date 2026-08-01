@@ -40,7 +40,8 @@ class StatisticsScreen extends StatelessWidget {
           const EmptyState(
             icon: Icons.query_stats_rounded,
             title: 'Datos insuficientes',
-            message: 'Registra sueños para calcular estadísticas y gráficos reales.',
+            message:
+                'Registra sueños para calcular estadísticas y gráficos reales.',
           )
         else ...<Widget>[
           _MetricGrid(statistics: statistics),
@@ -98,13 +99,27 @@ class _MetricGrid extends StatelessWidget {
       ('Diurno', AppDateTimeUtils.formatMinutes(statistics.dayMinutes)),
       ('Nocturno', AppDateTimeUtils.formatMinutes(statistics.nightMinutes)),
       ('Número de siestas', statistics.napCount.toString()),
-      ('Media de siestas', AppDateTimeUtils.formatMinutes(statistics.averageNapMinutes)),
-      ('Mediana de siestas', AppDateTimeUtils.formatMinutes(statistics.medianNapMinutes)),
-      ('Siesta más corta', AppDateTimeUtils.formatMinutes(statistics.shortestNapMinutes)),
-      ('Siesta más larga', AppDateTimeUtils.formatMinutes(statistics.longestNapMinutes)),
+      (
+        'Media de siestas',
+        AppDateTimeUtils.formatMinutes(statistics.averageNapMinutes),
+      ),
+      (
+        'Mediana de siestas',
+        AppDateTimeUtils.formatMinutes(statistics.medianNapMinutes),
+      ),
+      (
+        'Siesta más corta',
+        AppDateTimeUtils.formatMinutes(statistics.shortestNapMinutes),
+      ),
+      (
+        'Siesta más larga',
+        AppDateTimeUtils.formatMinutes(statistics.longestNapMinutes),
+      ),
       (
         'Sueño continuo más largo',
-        AppDateTimeUtils.formatMinutes(statistics.longestContinuousSleepMinutes),
+        AppDateTimeUtils.formatMinutes(
+          statistics.longestContinuousSleepMinutes,
+        ),
       ),
       (
         'Inicio nocturno mediano',
@@ -123,9 +138,18 @@ class _MetricGrid extends StatelessWidget {
         'Ventana despierto máxima',
         AppDateTimeUtils.formatMinutes(statistics.maximumAwakeWindowMinutes),
       ),
-      ('Rango intercuartílico', AppDateTimeUtils.formatMinutes(statistics.awakeWindowIqrMinutes)),
-      ('Variabilidad entre días', AppDateTimeUtils.formatMinutes(statistics.dailyVariabilityMinutes)),
-      ('Predicciones evaluables', statistics.evaluablePredictionCount.toString()),
+      (
+        'Rango intercuartílico',
+        AppDateTimeUtils.formatMinutes(statistics.awakeWindowIqrMinutes),
+      ),
+      (
+        'Variabilidad entre días',
+        AppDateTimeUtils.formatMinutes(statistics.dailyVariabilityMinutes),
+      ),
+      (
+        'Predicciones evaluables',
+        statistics.evaluablePredictionCount.toString(),
+      ),
       (
         'Error mediano de predicción',
         AppDateTimeUtils.formatMinutes(statistics.medianPredictionErrorMinutes),
@@ -153,9 +177,15 @@ class _MetricGrid extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(metric.$1, style: Theme.of(context).textTheme.labelLarge),
+                    Text(
+                      metric.$1,
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
                     const SizedBox(height: 6),
-                    Text(metric.$2, style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      metric.$2,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                   ],
                 ),
               ),
@@ -213,7 +243,8 @@ class _DailyBarChart extends StatelessWidget {
     if (visible.every((DailySleepTotal item) => item.totalMinutes == 0)) {
       return const _NoChartData(message: 'No hay sueño registrado por día.');
     }
-    final double maxHours = visible
+    final double maxHours =
+        visible
             .map((DailySleepTotal item) => item.totalMinutes / 60)
             .fold<double>(0, math.max) +
         1;
@@ -224,8 +255,12 @@ class _DailyBarChart extends StatelessWidget {
         borderData: FlBorderData(show: false),
         gridData: const FlGridData(show: true, drawVerticalLine: false),
         titlesData: FlTitlesData(
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
           leftTitles: const AxisTitles(
             sideTitles: SideTitles(showTitles: true, reservedSize: 34),
           ),
@@ -239,7 +274,9 @@ class _DailyBarChart extends StatelessWidget {
                 }
                 return Padding(
                   padding: const EdgeInsets.only(top: 6),
-                  child: Text(DateFormat('dd/MM').format(visible[index].localDate)),
+                  child: Text(
+                    DateFormat('dd/MM').format(visible[index].localDate),
+                  ),
                 );
               },
               reservedSize: 32,
@@ -266,7 +303,10 @@ class _DailyBarChart extends StatelessWidget {
 }
 
 class _DistributionChart extends StatelessWidget {
-  const _DistributionChart({required this.dayMinutes, required this.nightMinutes});
+  const _DistributionChart({
+    required this.dayMinutes,
+    required this.nightMinutes,
+  });
 
   final double dayMinutes;
   final double nightMinutes;
@@ -325,8 +365,9 @@ class _ValuesBarChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<double> visible =
-        values.length > 20 ? values.sublist(values.length - 20) : values;
+    final List<double> visible = values.length > 20
+        ? values.sublist(values.length - 20)
+        : values;
     final double maxValue = visible.fold<double>(0, math.max) + 10;
     return BarChart(
       BarChartData(
@@ -367,8 +408,9 @@ class _AwakeLineChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<double> visible =
-        values.length > 30 ? values.sublist(values.length - 30) : values;
+    final List<double> visible = values.length > 30
+        ? values.sublist(values.length - 30)
+        : values;
     return LineChart(
       LineChartData(
         borderData: FlBorderData(show: false),

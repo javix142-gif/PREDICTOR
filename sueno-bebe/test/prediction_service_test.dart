@@ -7,13 +7,13 @@ import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
 BabyProfile profile(DateTime now) => BabyProfile(
-      id: 'baby-1',
-      name: 'Luna',
-      birthDate: DateTime(2026, 4, 30),
-      timezone: 'UTC',
-      createdAtUtc: now.subtract(const Duration(days: 90)),
-      modifiedAtUtc: now,
-    );
+  id: 'baby-1',
+  name: 'Luna',
+  birthDate: DateTime(2026, 4, 30),
+  timezone: 'UTC',
+  createdAtUtc: now.subtract(const Duration(days: 90)),
+  modifiedAtUtc: now,
+);
 
 SleepEvent completed({
   required String id,
@@ -61,25 +61,25 @@ List<SleepEvent> historyWithWakeWindows(
 }
 
 SleepPrediction basePrediction(DateTime now) => SleepPrediction(
-      id: 'prediction-1',
-      babyId: 'baby-1',
-      generatedAtUtc: now,
-      lastWakeUtc: now,
-      windowStartUtc: now.add(const Duration(minutes: 80)),
-      centerUtc: now.add(const Duration(minutes: 90)),
-      windowEndUtc: now.add(const Duration(minutes: 100)),
-      confidence: PredictionConfidence.medium,
-      observationCount: 8,
-      medianMinutes: 90,
-      p25Minutes: 80,
-      p75Minutes: 100,
-      source: PredictionSource.history,
-      explanation: 'Prueba',
-      algorithmVersion: PredictionService.algorithmVersion,
-      dataSnapshotJson: '{}',
-      sleepSequenceNumber: 2,
-      intendedType: SleepType.nap,
-    );
+  id: 'prediction-1',
+  babyId: 'baby-1',
+  generatedAtUtc: now,
+  lastWakeUtc: now,
+  windowStartUtc: now.add(const Duration(minutes: 80)),
+  centerUtc: now.add(const Duration(minutes: 90)),
+  windowEndUtc: now.add(const Duration(minutes: 100)),
+  confidence: PredictionConfidence.medium,
+  observationCount: 8,
+  medianMinutes: 90,
+  p25Minutes: 80,
+  p75Minutes: 100,
+  source: PredictionSource.history,
+  explanation: 'Prueba',
+  algorithmVersion: PredictionService.algorithmVersion,
+  dataSnapshotJson: '{}',
+  sleepSequenceNumber: 2,
+  intendedType: SleepType.nap,
+);
 
 void main() {
   late tz.Location utc;

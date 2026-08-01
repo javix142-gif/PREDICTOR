@@ -50,7 +50,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               textCapitalization: TextCapitalization.words,
               decoration: const InputDecoration(labelText: 'Nombre o apodo'),
               validator: (String? value) =>
-                  value == null || value.trim().isEmpty ? 'Campo obligatorio.' : null,
+                  value == null || value.trim().isEmpty
+                  ? 'Campo obligatorio.'
+                  : null,
             ),
             const SizedBox(height: 16),
             _DateTile(
@@ -117,19 +119,19 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     }
     try {
       await context.read<AppController>().updateProfile(
-            name: _nameController.text,
-            birthDate: _birthDate,
-            expectedDueDate: _expectedDueDate,
-            notes: _notesController.text,
-          );
+        name: _nameController.text,
+        birthDate: _birthDate,
+        expectedDueDate: _expectedDueDate,
+        notes: _notesController.text,
+      );
       if (mounted) {
         Navigator.pop(context);
       }
     } on Object catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.toString())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.toString())));
       }
     }
   }
@@ -161,7 +163,7 @@ class _DateTile extends StatelessWidget {
         value == null
             ? 'No informada'
             : '${value!.day.toString().padLeft(2, '0')}/'
-                '${value!.month.toString().padLeft(2, '0')}/${value!.year}',
+                  '${value!.month.toString().padLeft(2, '0')}/${value!.year}',
       ),
       onTap: onTap,
       trailing: onClear == null

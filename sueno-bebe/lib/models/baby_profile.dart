@@ -35,8 +35,9 @@ class BabyProfile {
       id: id ?? this.id,
       name: name ?? this.name,
       birthDate: birthDate ?? this.birthDate,
-      expectedDueDate:
-          clearExpectedDueDate ? null : expectedDueDate ?? this.expectedDueDate,
+      expectedDueDate: clearExpectedDueDate
+          ? null
+          : expectedDueDate ?? this.expectedDueDate,
       notes: clearNotes ? null : notes ?? this.notes,
       timezone: timezone ?? this.timezone,
       createdAtUtc: createdAtUtc ?? this.createdAtUtc,
@@ -49,8 +50,9 @@ class BabyProfile {
       'id': id,
       'name': name,
       'birth_date': _dateOnly(birthDate),
-      'expected_due_date':
-          expectedDueDate == null ? null : _dateOnly(expectedDueDate!),
+      'expected_due_date': expectedDueDate == null
+          ? null
+          : _dateOnly(expectedDueDate!),
       'notes': notes,
       'timezone': timezone,
       'created_at_utc': createdAtUtc.toUtc().millisecondsSinceEpoch,

@@ -19,8 +19,7 @@ class WakeWindowReference {
       ageDays >= minimumAgeDays && ageDays <= maximumAgeDays;
 }
 
-const List<WakeWindowReference> wakeWindowReferences =
-    <WakeWindowReference>[
+const List<WakeWindowReference> wakeWindowReferences = <WakeWindowReference>[
   WakeWindowReference(
     minimumAgeDays: 0,
     maximumAgeDays: 27,
@@ -75,9 +74,8 @@ const List<WakeWindowReference> wakeWindowReferences =
 WakeWindowReference wakeReferenceForAgeDays(int ageDays) {
   return wakeWindowReferences.firstWhere(
     (WakeWindowReference reference) => reference.containsAge(ageDays),
-    orElse: () => ageDays < 0
-        ? wakeWindowReferences.first
-        : wakeWindowReferences.last,
+    orElse: () =>
+        ageDays < 0 ? wakeWindowReferences.first : wakeWindowReferences.last,
   );
 }
 
@@ -100,8 +98,7 @@ class SleepAmountReference {
       ageMonths >= minimumAgeMonths && ageMonths <= maximumAgeMonths;
 }
 
-const List<SleepAmountReference> sleepAmountReferences =
-    <SleepAmountReference>[
+const List<SleepAmountReference> sleepAmountReferences = <SleepAmountReference>[
   SleepAmountReference(
     minimumAgeMonths: 0,
     maximumAgeMonths: 3,

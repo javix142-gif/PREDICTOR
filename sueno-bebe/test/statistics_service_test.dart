@@ -65,10 +65,7 @@ void main() {
   });
 
   test('8. calcula rango intercuartílico', () {
-    expect(
-      StatMath.interquartileRange(<double>[0, 10, 20, 30, 40]),
-      20,
-    );
+    expect(StatMath.interquartileRange(<double>[0, 10, 20, 30, 40]), 20);
   });
 
   test('9. devuelve estadísticas vacías sin inventar datos', () {
@@ -130,7 +127,10 @@ void main() {
     expect(result.averageNapMinutes, 75);
     expect(result.medianNapMinutes, 75);
     expect(result.longestContinuousSleepMinutes, 510);
-    expect(result.dailyTotals.where((day) => day.totalMinutes > 0), hasLength(3));
+    expect(
+      result.dailyTotals.where((day) => day.totalMinutes > 0),
+      hasLength(3),
+    );
   });
 
   test('17. una modificación recalcula los totales', () {

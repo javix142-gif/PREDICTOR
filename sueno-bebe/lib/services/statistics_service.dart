@@ -55,11 +55,11 @@ class StatisticsService {
     return events.fold<double>(0, (double total, SleepEvent event) {
       return total +
           clippedDuration(
-            event: event,
-            intervalStartUtc: start,
-            intervalEndUtc: end,
-            nowUtc: end,
-          ).inSeconds /
+                event: event,
+                intervalStartUtc: start,
+                intervalEndUtc: end,
+                nowUtc: end,
+              ).inSeconds /
               60;
     });
   }
@@ -97,7 +97,10 @@ class StatisticsService {
     );
     final double dayMinutes = slices
         .where((_EventSlice slice) => slice.event.type == SleepType.nap)
-        .fold<double>(0, (double sum, _EventSlice slice) => sum + slice.minutes);
+        .fold<double>(
+          0,
+          (double sum, _EventSlice slice) => sum + slice.minutes,
+        );
     final double nightMinutes = totalMinutes - dayMinutes;
 
     final List<double> napDurations = slices
@@ -105,16 +108,21 @@ class StatisticsService {
         .map((_EventSlice slice) => slice.minutes)
         .toList(growable: false);
 
-    final List<double> continuousDurations =
-        slices.map((_EventSlice slice) => slice.minutes).toList();
+    final List<double> continuousDurations = slices
+        .map((_EventSlice slice) => slice.minutes)
+        .toList();
 
-    final List<AwakeWindowObservation> awakeObservations = buildAwakeWindows(
-      events: sortedEvents,
-      nowUtc: endUtc,
-      location: location,
-    ).where((AwakeWindowObservation item) {
-      return !item.endUtc.isBefore(startUtc) && !item.endUtc.isAfter(endUtc);
-    }).toList(growable: false);
+    final List<AwakeWindowObservation> awakeObservations =
+        buildAwakeWindows(
+              events: sortedEvents,
+              nowUtc: endUtc,
+              location: location,
+            )
+            .where((AwakeWindowObservation item) {
+              return !item.endUtc.isBefore(startUtc) &&
+                  !item.endUtc.isAfter(endUtc);
+            })
+            .toList(growable: false);
     final List<double> awakeMinutes = awakeObservations
         .map((AwakeWindowObservation item) => item.minutes)
         .toList(growable: false);
@@ -128,9 +136,14 @@ class StatisticsService {
       if (event.endUtc!.isBefore(startUtc) || event.startUtc.isAfter(endUtc)) {
         continue;
       }
-      final tz.TZDateTime localStart =
-          tz.TZDateTime.from(event.startUtc, location);
-      final tz.TZDateTime localEnd = tz.TZDateTime.from(event.endUtc!, location);
+      final tz.TZDateTime localStart = tz.TZDateTime.from(
+        event.startUtc,
+        location,
+      );
+      final tz.TZDateTime localEnd = tz.TZDateTime.from(
+        event.endUtc!,
+        location,
+      );
       double startMinute = localStart.hour * 60 + localStart.minute.toDouble();
       if (startMinute < 12 * 60) {
         startMinute += 24 * 60;
@@ -157,7 +170,9 @@ class StatisticsService {
               !evaluated.isAfter(endUtc) &&
               prediction.errorMinutes != null;
         })
-        .map((SleepPrediction prediction) => prediction.errorMinutes!.toDouble())
+        .map(
+          (SleepPrediction prediction) => prediction.errorMinutes!.toDouble(),
+        )
         .toList(growable: false);
 
     return SleepStatistics(
@@ -169,21 +184,26 @@ class StatisticsService {
       napCount: napDurations.length,
       averageNapMinutes: StatMath.average(napDurations),
       medianNapMinutes: StatMath.median(napDurations),
-      shortestNapMinutes:
-          napDurations.isEmpty ? null : napDurations.reduce(math.min),
-      longestNapMinutes:
-          napDurations.isEmpty ? null : napDurations.reduce(math.max),
+      shortestNapMinutes: napDurations.isEmpty
+          ? null
+          : napDurations.reduce(math.min),
+      longestNapMinutes: napDurations.isEmpty
+          ? null
+          : napDurations.reduce(math.max),
       longestContinuousSleepMinutes: continuousDurations.isEmpty
           ? null
           : continuousDurations.reduce(math.max),
-      medianNightStartMinuteOfDay:
-          _normalizeMinuteOfDay(StatMath.median(nightStartMinutes)),
+      medianNightStartMinuteOfDay: _normalizeMinuteOfDay(
+        StatMath.median(nightStartMinutes),
+      ),
       medianWakeMinuteOfDay: StatMath.median(wakeMinutes),
       medianAwakeWindowMinutes: StatMath.median(awakeMinutes),
-      minimumAwakeWindowMinutes:
-          awakeMinutes.isEmpty ? null : awakeMinutes.reduce(math.min),
-      maximumAwakeWindowMinutes:
-          awakeMinutes.isEmpty ? null : awakeMinutes.reduce(math.max),
+      minimumAwakeWindowMinutes: awakeMinutes.isEmpty
+          ? null
+          : awakeMinutes.reduce(math.min),
+      maximumAwakeWindowMinutes: awakeMinutes.isEmpty
+          ? null
+          : awakeMinutes.reduce(math.max),
       awakeWindowIqrMinutes: StatMath.interquartileRange(awakeMinutes),
       dailyVariabilityMinutes: StatMath.standardDeviation(totalsPerDay),
       evaluablePredictionCount: predictionErrors.length,
@@ -199,10 +219,10 @@ class StatisticsService {
     required DateTime nowUtc,
     required tz.Location location,
   }) {
-    final List<SleepEvent> completed = events
-        .where((SleepEvent event) => event.endUtc != null)
-        .toList()
-      ..sort((SleepEvent a, SleepEvent b) => a.startUtc.compareTo(b.startUtc));
+    final List<SleepEvent> completed =
+        events.where((SleepEvent event) => event.endUtc != null).toList()..sort(
+          (SleepEvent a, SleepEvent b) => a.startUtc.compareTo(b.startUtc),
+        );
     final List<AwakeWindowObservation> observations =
         <AwakeWindowObservation>[];
     for (int index = 0; index < completed.length - 1; index += 1) {
@@ -235,16 +255,17 @@ class StatisticsService {
     List<SleepEvent> events,
     tz.Location location,
   ) {
-    final tz.TZDateTime targetLocal =
-        tz.TZDateTime.from(target.startUtc, location);
+    final tz.TZDateTime targetLocal = tz.TZDateTime.from(
+      target.startUtc,
+      location,
+    );
     return events.where((SleepEvent event) {
-          final tz.TZDateTime local =
-              tz.TZDateTime.from(event.startUtc, location);
-          return local.year == targetLocal.year &&
-              local.month == targetLocal.month &&
-              local.day == targetLocal.day &&
-              !event.startUtc.isAfter(target.startUtc);
-        }).length;
+      final tz.TZDateTime local = tz.TZDateTime.from(event.startUtc, location);
+      return local.year == targetLocal.year &&
+          local.month == targetLocal.month &&
+          local.day == targetLocal.day &&
+          !event.startUtc.isAfter(target.startUtc);
+    }).length;
   }
 
   List<DailySleepTotal> _buildDailyTotals({
@@ -281,7 +302,8 @@ class StatisticsService {
         if (!clippedEnd.isAfter(clippedStart)) {
           continue;
         }
-        final double minutes = clippedEnd.difference(clippedStart).inSeconds / 60;
+        final double minutes =
+            clippedEnd.difference(clippedStart).inSeconds / 60;
         if (slice.event.type == SleepType.nap) {
           nap += minutes;
         } else {

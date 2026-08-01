@@ -44,7 +44,9 @@ class PredictionDetailsScreen extends StatelessWidget {
                         const SizedBox(height: 12),
                         Chip(
                           avatar: const Icon(Icons.verified_outlined, size: 18),
-                          label: Text('Confianza ${prediction.confidence.label}'),
+                          label: Text(
+                            'Confianza ${prediction.confidence.label}',
+                          ),
                         ),
                       ],
                     ),
@@ -57,17 +59,25 @@ class PredictionDetailsScreen extends StatelessWidget {
                 ),
                 _DetailTile(
                   label: 'Mediana personal',
-                  value: AppDateTimeUtils.formatMinutes(prediction.medianMinutes),
+                  value: AppDateTimeUtils.formatMinutes(
+                    prediction.medianMinutes,
+                  ),
                 ),
                 _DetailTile(
                   label: 'Intervalo intercuartílico',
                   value: prediction.p25Minutes == null
                       ? 'Sin datos suficientes'
                       : '${AppDateTimeUtils.formatMinutes(prediction.p25Minutes)} – '
-                          '${AppDateTimeUtils.formatMinutes(prediction.p75Minutes)}',
+                            '${AppDateTimeUtils.formatMinutes(prediction.p75Minutes)}',
                 ),
-                _DetailTile(label: 'Fuente principal', value: prediction.source.label),
-                _DetailTile(label: 'Tipo probable', value: prediction.intendedType.label),
+                _DetailTile(
+                  label: 'Fuente principal',
+                  value: prediction.source.label,
+                ),
+                _DetailTile(
+                  label: 'Tipo probable',
+                  value: prediction.intendedType.label,
+                ),
                 const SizedBox(height: 12),
                 Card(
                   child: Padding(
@@ -75,7 +85,10 @@ class PredictionDetailsScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Text('Explicación', style: Theme.of(context).textTheme.titleMedium),
+                        Text(
+                          'Explicación',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
                         const SizedBox(height: 8),
                         Text(prediction.explanation),
                       ],

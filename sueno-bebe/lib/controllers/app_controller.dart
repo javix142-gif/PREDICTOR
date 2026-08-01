@@ -33,15 +33,15 @@ class AppController extends ChangeNotifier {
     SharedPreferencesAsync? preferences,
     Uuid? uuid,
     DateTime Function()? nowProvider,
-  })  : _babyRepository = babyRepository ?? BabyRepository(),
-        _sleepRepository = sleepRepository ?? SleepRepository(),
-        _statisticsService = statisticsService ?? const StatisticsService(),
-        _predictionService = predictionService ?? const PredictionService(),
-        _notificationService = notificationService ?? NotificationService(),
-        _exportService = exportService ?? const ExportService(),
-        _preferences = preferences ?? SharedPreferencesAsync(),
-        _uuid = uuid ?? const Uuid(),
-        _nowProvider = nowProvider ?? DateTime.now;
+  }) : _babyRepository = babyRepository ?? BabyRepository(),
+       _sleepRepository = sleepRepository ?? SleepRepository(),
+       _statisticsService = statisticsService ?? const StatisticsService(),
+       _predictionService = predictionService ?? const PredictionService(),
+       _notificationService = notificationService ?? NotificationService(),
+       _exportService = exportService ?? const ExportService(),
+       _preferences = preferences ?? SharedPreferencesAsync(),
+       _uuid = uuid ?? const Uuid(),
+       _nowProvider = nowProvider ?? DateTime.now;
 
   static const String _themeKey = 'theme_preference';
   static const String _notificationsEnabledKey = 'notifications_enabled';
@@ -84,12 +84,13 @@ class AppController extends ChangeNotifier {
     }
     return null;
   }
+
   bool get hasProfile => profile != null;
   ThemeMode get themeMode => switch (themePreference) {
-        AppThemePreference.system => ThemeMode.system,
-        AppThemePreference.light => ThemeMode.light,
-        AppThemePreference.dark => ThemeMode.dark,
-      };
+    AppThemePreference.system => ThemeMode.system,
+    AppThemePreference.light => ThemeMode.light,
+    AppThemePreference.dark => ThemeMode.dark,
+  };
 
   tz.Location get location {
     final String identifier =
@@ -122,7 +123,8 @@ class AppController extends ChangeNotifier {
 
   Future<void> _loadPreferences() async {
     final String value =
-        await _preferences.getString(_themeKey) ?? AppThemePreference.system.name;
+        await _preferences.getString(_themeKey) ??
+        AppThemePreference.system.name;
     themePreference = AppThemePreference.values.firstWhere(
       (AppThemePreference item) => item.name == value,
       orElse: () => AppThemePreference.system,
@@ -226,8 +228,8 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> finishSleep() async {
-    final SleepEvent current = openEvent ??
-        (throw const StateError('No existe un sueño en curso.'));
+    final SleepEvent current =
+        openEvent ?? (throw const StateError('No existe un sueño en curso.'));
     final DateTime now = _nowProvider().toUtc();
     final SleepEvent completed = current.copyWith(
       endUtc: now,
@@ -351,9 +353,13 @@ class AppController extends ChangeNotifier {
       return 'Sin datos suficientes';
     }
     final tz.TZDateTime localNow = tz.TZDateTime.from(nowUtc, location);
-    final int months = AppDateTimeUtils.ageInMonths(current.birthDate, localNow);
-    final SleepAmountReference reference =
-        sleepAmountReferenceForAgeMonths(months);
+    final int months = AppDateTimeUtils.ageInMonths(
+      current.birthDate,
+      localNow,
+    );
+    final SleepAmountReference reference = sleepAmountReferenceForAgeMonths(
+      months,
+    );
     final double hours = stats.totalMinutes / 60;
     if (hours < reference.minimumHours) {
       return 'Bajo el rango general durante este período';
@@ -428,7 +434,9 @@ class AppController extends ChangeNotifier {
       await _cancelPredictionNotification();
       return;
     }
-    final bool hasCompleted = events.any((SleepEvent event) => event.endUtc != null);
+    final bool hasCompleted = events.any(
+      (SleepEvent event) => event.endUtc != null,
+    );
     if (!hasCompleted) {
       currentPrediction = null;
       bedtimeEstimate = null;

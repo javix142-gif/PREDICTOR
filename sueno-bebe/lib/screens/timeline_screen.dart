@@ -22,18 +22,20 @@ class _TimelineScreenState extends State<TimelineScreen> {
   @override
   Widget build(BuildContext context) {
     final AppController controller = context.watch<AppController>();
-    final List<SleepEvent> events = controller.events.reversed.where(
-      (SleepEvent event) {
-        if (_selectedDate == null) {
-          return true;
-        }
-        final tz.TZDateTime local =
-            tz.TZDateTime.from(event.startUtc, controller.location);
-        return local.year == _selectedDate!.year &&
-            local.month == _selectedDate!.month &&
-            local.day == _selectedDate!.day;
-      },
-    ).toList(growable: false);
+    final List<SleepEvent> events = controller.events.reversed
+        .where((SleepEvent event) {
+          if (_selectedDate == null) {
+            return true;
+          }
+          final tz.TZDateTime local = tz.TZDateTime.from(
+            event.startUtc,
+            controller.location,
+          );
+          return local.year == _selectedDate!.year &&
+              local.month == _selectedDate!.month &&
+              local.day == _selectedDate!.day;
+        })
+        .toList(growable: false);
 
     return Stack(
       children: <Widget>[
@@ -51,8 +53,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                         _selectedDate == null
                             ? 'Todas las fechas'
                             : '${_selectedDate!.day.toString().padLeft(2, '0')}/'
-                                '${_selectedDate!.month.toString().padLeft(2, '0')}/'
-                                '${_selectedDate!.year}',
+                                  '${_selectedDate!.month.toString().padLeft(2, '0')}/'
+                                  '${_selectedDate!.year}',
                       ),
                     ),
                   ),
@@ -109,8 +111,10 @@ class _TimelineScreenState extends State<TimelineScreen> {
     final List<Widget> children = <Widget>[];
     String? previousDateKey;
     for (final SleepEvent event in events) {
-      final tz.TZDateTime local =
-          tz.TZDateTime.from(event.startUtc, controller.location);
+      final tz.TZDateTime local = tz.TZDateTime.from(
+        event.startUtc,
+        controller.location,
+      );
       final String dateKey = '${local.year}-${local.month}-${local.day}';
       if (dateKey != previousDateKey) {
         children.add(
@@ -161,10 +165,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
     );
   }
 
-  Future<void> _confirmDelete(
-    BuildContext context,
-    SleepEvent event,
-  ) async {
+  Future<void> _confirmDelete(BuildContext context, SleepEvent event) async {
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
@@ -191,9 +192,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
       await context.read<AppController>().deleteEvent(event.id);
     } on Object catch (error) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.toString())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.toString())));
       }
     }
   }

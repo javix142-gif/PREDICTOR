@@ -13,7 +13,7 @@ import 'statistics_service.dart';
 
 class PredictionService {
   const PredictionService({StatisticsService? statisticsService})
-      : _statisticsService = statisticsService ?? const StatisticsService();
+    : _statisticsService = statisticsService ?? const StatisticsService();
 
   static const String algorithmVersion = 'sleep-window-v1';
   static const Duration historyWindow = Duration(days: 14);
@@ -57,11 +57,15 @@ class PredictionService {
     if (candidates.length < 3) {
       final double centerMinutes =
           (ageReference.minimumMinutes + ageReference.maximumMinutes) / 2;
-      final DateTime start =
-          wakeUtc.add(Duration(minutes: ageReference.minimumMinutes));
-      final DateTime center = wakeUtc.add(Duration(minutes: centerMinutes.round()));
-      final DateTime end =
-          wakeUtc.add(Duration(minutes: ageReference.maximumMinutes));
+      final DateTime start = wakeUtc.add(
+        Duration(minutes: ageReference.minimumMinutes),
+      );
+      final DateTime center = wakeUtc.add(
+        Duration(minutes: centerMinutes.round()),
+      );
+      final DateTime end = wakeUtc.add(
+        Duration(minutes: ageReference.maximumMinutes),
+      );
       return SleepPrediction(
         id: id,
         babyId: profile.id,
@@ -78,11 +82,11 @@ class PredictionService {
         source: PredictionSource.age,
         explanation: candidates.isEmpty
             ? 'Todavía no hay ventanas personales suficientes. La estimación '
-                'usa la referencia orientativa amplia para ${ageReference.label}. '
-                'Observa también sus señales de sueño.'
+                  'usa la referencia orientativa amplia para ${ageReference.label}. '
+                  'Observa también sus señales de sueño.'
             : 'Solo hay ${candidates.length} ventanas personales válidas. La '
-                'estimación se basa principalmente en la edad y se irá ajustando '
-                'con nuevos registros.',
+                  'estimación se basa principalmente en la edad y se irá ajustando '
+                  'con nuevos registros.',
         algorithmVersion: algorithmVersion,
         dataSnapshotJson: jsonEncode(<String, Object?>{
           'ageDays': ageDays,
@@ -115,7 +119,8 @@ class PredictionService {
       p75 = median + half;
     }
     final double iqr = p75 - p25;
-    final double approximateRatio = candidates
+    final double approximateRatio =
+        candidates
             .where(
               (AwakeWindowObservation item) =>
                   item.nextSleepAccuracy == SleepAccuracy.approximate,
@@ -124,11 +129,10 @@ class PredictionService {
         candidates.length;
     final bool stale = _isStale(candidates, nowUtc);
     final List<AwakeWindowObservation> chronologicalCandidates =
-        List<AwakeWindowObservation>.of(candidates)
-          ..sort(
-            (AwakeWindowObservation a, AwakeWindowObservation b) =>
-                b.endUtc.compareTo(a.endUtc),
-          );
+        List<AwakeWindowObservation>.of(candidates)..sort(
+          (AwakeWindowObservation a, AwakeWindowObservation b) =>
+              b.endUtc.compareTo(a.endUtc),
+        );
     final bool recentChange = _hasRecentChange(
       chronologicalCandidates
           .map((AwakeWindowObservation item) => item.minutes)
@@ -209,10 +213,10 @@ class PredictionService {
     final SleepEvent? lastCompleted = events
         .where((SleepEvent event) => event.endUtc != null)
         .fold<SleepEvent?>(null, (SleepEvent? latest, SleepEvent event) {
-      return latest == null || event.endUtc!.isAfter(latest.endUtc!)
-          ? event
-          : latest;
-    });
+          return latest == null || event.endUtc!.isAfter(latest.endUtc!)
+              ? event
+              : latest;
+        });
     if (lastCompleted == null ||
         lastCompleted.type != SleepType.nap ||
         lastCompleted.endUtc == null) {
@@ -257,11 +261,15 @@ class PredictionService {
         highMinutes = centerMinutes + 10;
       }
       source = PredictionSource.history;
-      explanation = 'Estimación basada en ${lastWakeWindows.length} últimas '
+      explanation =
+          'Estimación basada en ${lastWakeWindows.length} últimas '
           'ventanas antes del sueño nocturno.';
     } else {
       final tz.TZDateTime localNow = tz.TZDateTime.from(nowUtc, location);
-      final int ageDays = AppDateTimeUtils.ageInDays(profile.birthDate, localNow);
+      final int ageDays = AppDateTimeUtils.ageInDays(
+        profile.birthDate,
+        localNow,
+      );
       final WakeWindowReference reference = wakeReferenceForAgeDays(ageDays);
       lowMinutes = reference.minimumMinutes.toDouble();
       highMinutes = reference.maximumMinutes.toDouble();
@@ -272,12 +280,11 @@ class PredictionService {
           : 'Hay historial nocturno, pero aún no alcanza para calcular una mediana estable.';
     }
     return BedtimeEstimate(
-      windowStartUtc:
-          lastNap.endUtc!.add(Duration(minutes: lowMinutes.round())),
-      centerUtc:
-          lastNap.endUtc!.add(Duration(minutes: centerMinutes.round())),
-      windowEndUtc:
-          lastNap.endUtc!.add(Duration(minutes: highMinutes.round())),
+      windowStartUtc: lastNap.endUtc!.add(
+        Duration(minutes: lowMinutes.round()),
+      ),
+      centerUtc: lastNap.endUtc!.add(Duration(minutes: centerMinutes.round())),
+      windowEndUtc: lastNap.endUtc!.add(Duration(minutes: highMinutes.round())),
       source: source,
       explanation: explanation,
     );
@@ -337,8 +344,7 @@ class PredictionService {
     if (selected.length < 3) {
       selected = recent
           .where(
-            (AwakeWindowObservation item) =>
-                item.nextSleepType == intendedType,
+            (AwakeWindowObservation item) => item.nextSleepType == intendedType,
           )
           .toList();
     }
@@ -346,8 +352,9 @@ class PredictionService {
       selected = recent;
     }
     selected.sort((AwakeWindowObservation a, AwakeWindowObservation b) {
-      final int accuracyComparison =
-          a.nextSleepAccuracy.index.compareTo(b.nextSleepAccuracy.index);
+      final int accuracyComparison = a.nextSleepAccuracy.index.compareTo(
+        b.nextSleepAccuracy.index,
+      );
       if (accuracyComparison != 0) {
         return accuracyComparison;
       }
@@ -374,8 +381,10 @@ class PredictionService {
   ) {
     final tz.TZDateTime wakeLocal = tz.TZDateTime.from(wakeUtc, location);
     return events.where((SleepEvent event) {
-          final tz.TZDateTime local =
-              tz.TZDateTime.from(event.startUtc, location);
+          final tz.TZDateTime local = tz.TZDateTime.from(
+            event.startUtc,
+            location,
+          );
           return local.year == wakeLocal.year &&
               local.month == wakeLocal.month &&
               local.day == wakeLocal.day &&
@@ -384,19 +393,12 @@ class PredictionService {
         1;
   }
 
-  SleepType _suggestType(
-    DateTime wakeUtc,
-    tz.Location location,
-    int sequence,
-  ) {
+  SleepType _suggestType(DateTime wakeUtc, tz.Location location, int sequence) {
     final tz.TZDateTime local = tz.TZDateTime.from(wakeUtc, location);
     return local.hour >= 17 || sequence >= 5 ? SleepType.night : SleepType.nap;
   }
 
-  bool _isStale(
-    List<AwakeWindowObservation> observations,
-    DateTime nowUtc,
-  ) {
+  bool _isStale(List<AwakeWindowObservation> observations, DateTime nowUtc) {
     final DateTime latest = observations
         .map((AwakeWindowObservation item) => item.endUtc)
         .reduce((DateTime a, DateTime b) => a.isAfter(b) ? a : b);

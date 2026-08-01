@@ -35,7 +35,9 @@ class ExportService {
           .toIso8601String()
           .replaceAll(':', '-')
           .replaceAll('.', '-');
-      final File file = File(path.join(directory.path, 'sueno_bebe_$stamp.csv'));
+      final File file = File(
+        path.join(directory.path, 'sueno_bebe_$stamp.csv'),
+      );
       final StringBuffer output = StringBuffer();
       output.writeln('SECCION,PERFIL');
       output.writeln(
@@ -157,8 +159,8 @@ class ExportService {
             prediction.startedWithinWindow == null
                 ? ''
                 : prediction.startedWithinWindow!
-                    ? 'si'
-                    : 'no',
+                ? 'si'
+                : 'no',
           ]),
         );
       }
@@ -174,8 +176,9 @@ class ExportService {
           'dentro_intervalo',
         ]),
       );
-      for (final SleepPrediction prediction
-          in predictions.where((SleepPrediction item) => item.isEvaluated)) {
+      for (final SleepPrediction prediction in predictions.where(
+        (SleepPrediction item) => item.isEvaluated,
+      )) {
         output.writeln(
           _row(<Object?>[
             prediction.id,

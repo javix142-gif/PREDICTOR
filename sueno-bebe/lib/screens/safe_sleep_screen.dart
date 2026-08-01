@@ -54,7 +54,11 @@ class SafeSleepScreen extends StatelessWidget {
 }
 
 class _InfoCard extends StatelessWidget {
-  const _InfoCard({required this.icon, required this.title, required this.items});
+  const _InfoCard({
+    required this.icon,
+    required this.title,
+    required this.items,
+  });
 
   final IconData icon;
   final String title;
@@ -73,7 +77,10 @@ class _InfoCard extends StatelessWidget {
                 Icon(icon),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                 ),
               ],
             ),

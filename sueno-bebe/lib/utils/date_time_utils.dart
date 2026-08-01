@@ -77,7 +77,9 @@ class AppDateTimeUtils {
 
   static int ageInMonths(DateTime birthDate, DateTime localNow) {
     int months =
-        (localNow.year - birthDate.year) * 12 + localNow.month - birthDate.month;
+        (localNow.year - birthDate.year) * 12 +
+        localNow.month -
+        birthDate.month;
     if (localNow.day < birthDate.day) {
       months -= 1;
     }

@@ -2,11 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sueno_bebe/models/sleep_event.dart';
 import 'package:sueno_bebe/services/sleep_event_validator.dart';
 
-SleepEvent event({
-  required String id,
-  required DateTime start,
-  DateTime? end,
-}) {
+SleepEvent event({required String id, required DateTime start, DateTime? end}) {
   final DateTime created = DateTime.utc(2026, 7, 1);
   return SleepEvent(
     id: id,
@@ -61,10 +57,7 @@ void main() {
       end: DateTime.utc(2026, 7, 31, 11),
     );
 
-    expect(
-      SleepEventValidator.overlaps(first, second, nowUtc: now),
-      isTrue,
-    );
+    expect(SleepEventValidator.overlaps(first, second, nowUtc: now), isTrue);
   });
 
   test('18. rechaza término anterior o igual al inicio', () {
@@ -111,9 +104,6 @@ void main() {
       end: DateTime.utc(2026, 7, 31, 10),
     );
 
-    expect(
-      SleepEventValidator.overlaps(first, second, nowUtc: now),
-      isFalse,
-    );
+    expect(SleepEventValidator.overlaps(first, second, nowUtc: now), isFalse);
   });
 }

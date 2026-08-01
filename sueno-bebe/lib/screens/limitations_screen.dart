@@ -12,27 +12,32 @@ class LimitationsScreen extends StatelessWidget {
         children: const <Widget>[
           _Limitation(
             title: 'Depende de los registros',
-            body: 'La aplicación no detecta el sueño por sí sola ni inventa despertares. '
+            body:
+                'La aplicación no detecta el sueño por sí sola ni inventa despertares. '
                 'Los resultados reflejan exclusivamente la información ingresada.',
           ),
           _Limitation(
             title: 'Predicción estadística',
-            body: 'La próxima ventana es un intervalo probable, no una instrucción '
+            body:
+                'La próxima ventana es un intervalo probable, no una instrucción '
                 'ni una garantía. Los patrones infantiles pueden cambiar.',
           ),
           _Limitation(
             title: 'Referencias generales',
-            body: 'Los rangos por edad se muestran como orientación poblacional. '
+            body:
+                'Los rangos por edad se muestran como orientación poblacional. '
                 'No se diagnostican trastornos ni se emiten alertas médicas.',
           ),
           _Limitation(
             title: 'Prematuridad',
-            body: 'La fecha probable de parto se guarda como antecedente. La '
+            body:
+                'La fecha probable de parto se guarda como antecedente. La '
                 'aplicación no realiza ajustes automáticos de edad corregida.',
           ),
           _Limitation(
             title: 'Notificaciones aproximadas',
-            body: 'Android puede retrasar recordatorios por ahorro de batería. '
+            body:
+                'Android puede retrasar recordatorios por ahorro de batería. '
                 'La aplicación evita alarmas exactas y permisos innecesarios.',
           ),
         ],

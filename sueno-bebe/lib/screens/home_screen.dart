@@ -95,15 +95,17 @@ class _TodayContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppController controller = context.watch<AppController>();
     final BabyProfile profile = controller.profile!;
-    final tz.TZDateTime localNow =
-        tz.TZDateTime.from(controller.nowUtc, controller.location);
+    final tz.TZDateTime localNow = tz.TZDateTime.from(
+      controller.nowUtc,
+      controller.location,
+    );
     final SleepEvent? lastCompleted = controller.events
         .where((SleepEvent event) => event.endUtc != null)
         .fold<SleepEvent?>(null, (SleepEvent? latest, SleepEvent event) {
-      return latest == null || event.endUtc!.isAfter(latest.endUtc!)
-          ? event
-          : latest;
-    });
+          return latest == null || event.endUtc!.isAfter(latest.endUtc!)
+              ? event
+              : latest;
+        });
     final bool underFourMonths =
         AppDateTimeUtils.ageInMonths(profile.birthDate, localNow) < 4;
     final range = controller.currentSleepAmountReference();
@@ -134,15 +136,17 @@ class _TodayContent extends StatelessWidget {
             onPressed: controller.isBusy
                 ? null
                 : controller.openEvent == null
-                    ? () => _startSleep(context, controller)
-                    : () => _finishSleep(context, controller),
+                ? () => _startSleep(context, controller)
+                : () => _finishSleep(context, controller),
             icon: Icon(
               controller.openEvent == null
                   ? Icons.play_arrow_rounded
                   : Icons.stop_rounded,
             ),
             label: Text(
-              controller.openEvent == null ? 'Iniciar sueño' : 'Finalizar sueño',
+              controller.openEvent == null
+                  ? 'Iniciar sueño'
+                  : 'Finalizar sueño',
             ),
           ),
         ),
@@ -255,6 +259,8 @@ class _TodayContent extends StatelessWidget {
   }
 
   void _showError(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }

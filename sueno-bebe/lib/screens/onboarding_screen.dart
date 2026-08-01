@@ -81,8 +81,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                       validator: (String? value) =>
                           value == null || value.trim().isEmpty
-                              ? 'Ingresa un nombre o apodo.'
-                              : null,
+                          ? 'Ingresa un nombre o apodo.'
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     _DateField(
@@ -206,11 +206,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
     try {
       await context.read<AppController>().createProfile(
-            name: _nameController.text,
-            birthDate: _birthDate!,
-            expectedDueDate: _expectedDueDate,
-            theme: _theme,
-          );
+        name: _nameController.text,
+        birthDate: _birthDate!,
+        expectedDueDate: _expectedDueDate,
+        theme: _theme,
+      );
     } on Object catch (error) {
       if (mounted) {
         _showError(error.toString());
@@ -219,7 +219,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
@@ -241,7 +243,7 @@ class _DateField extends StatelessWidget {
     final String text = value == null
         ? 'Seleccionar'
         : '${value!.day.toString().padLeft(2, '0')}/'
-            '${value!.month.toString().padLeft(2, '0')}/${value!.year}';
+              '${value!.month.toString().padLeft(2, '0')}/${value!.year}';
     return Semantics(
       button: true,
       label: '$label: $text',

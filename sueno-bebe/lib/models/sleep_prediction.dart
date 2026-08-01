@@ -9,9 +9,8 @@ enum PredictionConfidence {
   final String dbValue;
   final String label;
 
-  static PredictionConfidence fromDb(String value) => values.firstWhere(
-        (PredictionConfidence item) => item.dbValue == value,
-      );
+  static PredictionConfidence fromDb(String value) =>
+      values.firstWhere((PredictionConfidence item) => item.dbValue == value);
 }
 
 enum PredictionSource {
@@ -119,8 +118,7 @@ class SleepPrediction {
       evaluatedAtUtc: evaluatedAtUtc ?? this.evaluatedAtUtc,
       actualSleepStartUtc: actualSleepStartUtc ?? this.actualSleepStartUtc,
       errorMinutes: errorMinutes ?? this.errorMinutes,
-      startedWithinWindow:
-          startedWithinWindow ?? this.startedWithinWindow,
+      startedWithinWindow: startedWithinWindow ?? this.startedWithinWindow,
     );
   }
 
@@ -150,8 +148,8 @@ class SleepPrediction {
       'started_within_window': startedWithinWindow == null
           ? null
           : startedWithinWindow!
-              ? 1
-              : 0,
+          ? 1
+          : 0,
     };
   }
 
@@ -186,8 +184,7 @@ class SleepPrediction {
         map['window_end_utc']! as int,
         isUtc: true,
       ),
-      confidence:
-          PredictionConfidence.fromDb(map['confidence']! as String),
+      confidence: PredictionConfidence.fromDb(map['confidence']! as String),
       observationCount: map['observation_count']! as int,
       medianMinutes: (map['median_minutes'] as num?)?.toDouble(),
       p25Minutes: (map['p25_minutes'] as num?)?.toDouble(),

@@ -28,8 +28,8 @@ class SleepBabyApp extends StatelessWidget {
       home: controller.isLoading
           ? const _LoadingScreen()
           : controller.hasProfile
-              ? const HomeScreen()
-              : const OnboardingScreen(),
+          ? const HomeScreen()
+          : const OnboardingScreen(),
     );
   }
 
@@ -60,7 +60,9 @@ class SleepBabyApp extends StatelessWidget {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size.fromHeight(54),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(

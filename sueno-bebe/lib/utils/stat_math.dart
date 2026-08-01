@@ -2,8 +2,9 @@ class StatMath {
   const StatMath._();
 
   static double? average(Iterable<num> values) {
-    final List<double> list =
-        values.map((num value) => value.toDouble()).toList();
+    final List<double> list = values
+        .map((num value) => value.toDouble())
+        .toList();
     if (list.isEmpty) {
       return null;
     }
@@ -45,13 +46,15 @@ class StatMath {
   }
 
   static double? standardDeviation(Iterable<num> values) {
-    final List<double> list =
-        values.map((num value) => value.toDouble()).toList();
+    final List<double> list = values
+        .map((num value) => value.toDouble())
+        .toList();
     final double? mean = average(list);
     if (mean == null || list.length < 2) {
       return null;
     }
-    final double variance = list
+    final double variance =
+        list
             .map((double value) => (value - mean) * (value - mean))
             .reduce((double a, double b) => a + b) /
         list.length;

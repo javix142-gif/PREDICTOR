@@ -31,7 +31,9 @@ class CurrentStatusCard extends StatelessWidget {
           children: <Widget>[
             CircleAvatar(
               radius: 27,
-              child: Icon(sleeping ? Icons.bedtime_rounded : Icons.wb_sunny_rounded),
+              child: Icon(
+                sleeping ? Icons.bedtime_rounded : Icons.wb_sunny_rounded,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -47,8 +49,8 @@ class CurrentStatusCard extends StatelessWidget {
                     elapsed == null
                         ? 'Aún no hay un despertar registrado'
                         : sleeping
-                            ? 'Desde hace ${AppDateTimeUtils.formatDuration(elapsed)}'
-                            : 'Desde hace ${AppDateTimeUtils.formatDuration(elapsed)}',
+                        ? 'Desde hace ${AppDateTimeUtils.formatDuration(elapsed)}'
+                        : 'Desde hace ${AppDateTimeUtils.formatDuration(elapsed)}',
                   ),
                   if (sleeping) ...<Widget>[
                     const SizedBox(height: 4),

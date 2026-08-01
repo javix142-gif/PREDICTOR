@@ -7,7 +7,7 @@ import 'app_database.dart';
 
 class SleepRepository {
   SleepRepository({AppDatabase? database})
-      : _database = database ?? AppDatabase.instance;
+    : _database = database ?? AppDatabase.instance;
 
   final AppDatabase _database;
 
@@ -46,8 +46,9 @@ class SleepRepository {
         where: 'baby_id = ? AND id != ?',
         whereArgs: <Object?>[event.babyId, event.id],
       );
-      final List<SleepEvent> existing =
-          existingRows.map(SleepEvent.fromMap).toList(growable: false);
+      final List<SleepEvent> existing = existingRows
+          .map(SleepEvent.fromMap)
+          .toList(growable: false);
       if (SleepEventValidator.overlapsAny(event, existing, nowUtc: nowUtc)) {
         throw const SleepEventValidationException(
           'El registro se superpone con otro sueño existente.',
@@ -131,7 +132,8 @@ class SleepRepository {
   }) async {
     final List<Map<String, Object?>> rows = await txn.query(
       'sleep_predictions',
-      where: 'baby_id = ? AND evaluated_at_utc IS NULL '
+      where:
+          'baby_id = ? AND evaluated_at_utc IS NULL '
           'AND generated_at_utc <= ? AND last_wake_utc < ?',
       whereArgs: <Object?>[
         babyId,
@@ -144,10 +146,11 @@ class SleepRepository {
     if (rows.isEmpty) {
       return null;
     }
-    final SleepPrediction evaluated = SleepPrediction.fromMap(rows.first).evaluate(
-      actualStartUtc: actualSleepStartUtc,
-      evaluatedAtUtc: evaluatedAtUtc,
-    );
+    final SleepPrediction evaluated = SleepPrediction.fromMap(rows.first)
+        .evaluate(
+          actualStartUtc: actualSleepStartUtc,
+          evaluatedAtUtc: evaluatedAtUtc,
+        );
     await txn.update(
       'sleep_predictions',
       evaluated.toMap(),

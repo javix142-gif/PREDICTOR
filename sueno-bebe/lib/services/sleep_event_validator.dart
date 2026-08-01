@@ -14,10 +14,7 @@ class SleepEventValidator {
 
   static const Duration futureClockTolerance = Duration(minutes: 5);
 
-  static void validateBasic(
-    SleepEvent event, {
-    required DateTime nowUtc,
-  }) {
+  static void validateBasic(SleepEvent event, {required DateTime nowUtc}) {
     final DateTime now = nowUtc.toUtc();
     final DateTime latestAllowed = now.add(futureClockTolerance);
     if (event.startUtc.toUtc().isAfter(latestAllowed)) {
