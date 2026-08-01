@@ -15,4 +15,4 @@ Analyzing sueno-bebe...
 
   error • The constructor being called isn't a const constructor. Try removing 'const' from the constructor invocation • lib/app.dart:162:16 • const_with_non_const
 
-1 issue found. (ran in 15.7s)
+1 issue found. (ran in 13.5s)
