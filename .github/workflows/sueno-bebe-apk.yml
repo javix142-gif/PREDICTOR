@@ -77,6 +77,17 @@ jobs:
           set -o pipefail
           flutter pub get 2>&1 | tee ../.github/sueno-bebe-ci/pub-get.log
 
+      - name: Aplicar formato oficial y conservar archivos generados
+        shell: bash
+        run: |
+          set -euo pipefail
+          dart format sueno-bebe/lib sueno-bebe/test 2>&1 | tee .github/sueno-bebe-ci/format-apply.log
+          git add sueno-bebe/lib sueno-bebe/test sueno-bebe/pubspec.lock sueno-bebe/android/gradle/wrapper/gradle-wrapper.jar
+          if ! git diff --cached --quiet; then
+            git commit -m 'Aplicar formato Dart y completar archivos de compilación'
+            git push origin HEAD:main
+          fi
+
       - name: Verificar formato Dart
         working-directory: sueno-bebe
         shell: bash
