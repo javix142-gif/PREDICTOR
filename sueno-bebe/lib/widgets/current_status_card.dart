@@ -8,12 +8,14 @@ class CurrentStatusCard extends StatelessWidget {
     required this.openEvent,
     required this.lastCompletedEvent,
     required this.nowUtc,
+    required this.isNightAwakening,
     super.key,
   });
 
   final SleepEvent? openEvent;
   final SleepEvent? lastCompletedEvent;
   final DateTime nowUtc;
+  final bool isNightAwakening;
 
   @override
   Widget build(BuildContext context) {
@@ -24,45 +26,76 @@ class CurrentStatusCard extends StatelessWidget {
     final Duration? elapsed = reference == null
         ? null
         : nowUtc.toUtc().difference(reference.toUtc());
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          children: <Widget>[
-            CircleAvatar(
-              radius: 27,
-              child: Icon(
-                sleeping ? Icons.bedtime_rounded : Icons.wb_sunny_rounded,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    final String stateLabel = sleeping
+        ? 'Durmiendo'
+        : isNightAwakening
+        ? 'Despertar nocturno'
+        : 'Despierta';
+    final IconData icon = sleeping
+        ? Icons.bedtime_rounded
+        : isNightAwakening
+        ? Icons.nights_stay_rounded
+        : Icons.wb_sunny_rounded;
+    final String elapsedLabel = elapsed == null
+        ? 'Sin un despertar registrado'
+        : sleeping
+        ? 'Tiempo dormida'
+        : 'Tiempo despierta';
+
+    return Semantics(
+      container: true,
+      label: '$stateLabel. $elapsedLabel ${elapsed == null ? '' : AppDateTimeUtils.formatDuration(elapsed)}',
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
                 children: <Widget>[
-                  Text(
-                    sleeping ? 'Durmiendo' : 'Despierto',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    elapsed == null
-                        ? 'Aún no hay un despertar registrado'
-                        : sleeping
-                        ? 'Desde hace ${AppDateTimeUtils.formatDuration(elapsed)}'
-                        : 'Desde hace ${AppDateTimeUtils.formatDuration(elapsed)}',
-                  ),
-                  if (sleeping) ...<Widget>[
-                    const SizedBox(height: 4),
-                    Text(
-                      openEvent!.type.label,
-                      style: Theme.of(context).textTheme.labelLarge,
+                  Icon(icon, size: 28),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      stateLabel,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ],
+                  ),
+                  if (sleeping)
+                    Chip(
+                      avatar: Icon(
+                        openEvent!.type == SleepType.nap
+                            ? Icons.light_mode_outlined
+                            : Icons.dark_mode_outlined,
+                        size: 18,
+                      ),
+                      label: Text(openEvent!.type.label),
+                    ),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(height: 14),
+              Text(elapsedLabel, style: Theme.of(context).textTheme.labelLarge),
+              const SizedBox(height: 2),
+              Text(
+                elapsed == null
+                    ? '—'
+                    : AppDateTimeUtils.formatDuration(elapsed),
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
+                ),
+              ),
+              if (isNightAwakening) ...<Widget>[
+                const SizedBox(height: 8),
+                Text(
+                  'El último segmento fue nocturno. Decide si continúa la misma noche o si ya terminó.',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );
