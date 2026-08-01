@@ -1,0 +1,128 @@
+name: Finalizar configuración Sueño Bebé
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sueno-bebe-finalize.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Conservar workflow final y eliminar archivos temporales
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > .github/workflows/sueno-bebe-apk.yml <<'YAML'
+          name: Sueño Bebé APK
+
+          on:
+            push:
+              branches: [main]
+              paths:
+                - 'sueno-bebe/**'
+                - '.github/workflows/sueno-bebe-apk.yml'
+            workflow_dispatch:
+
+          permissions:
+            contents: read
+
+          jobs:
+            build-debug-apk:
+              runs-on: ubuntu-latest
+              timeout-minutes: 60
+
+              defaults:
+                run:
+                  working-directory: sueno-bebe
+
+              steps:
+                - name: Descargar repositorio
+                  uses: actions/checkout@v4
+
+                - name: Configurar Java 17
+                  uses: actions/setup-java@v4
+                  with:
+                    distribution: temurin
+                    java-version: '17'
+
+                - name: Configurar Flutter 3.44.8 estable
+                  uses: subosito/flutter-action@v2
+                  with:
+                    flutter-version: '3.44.8'
+                    channel: stable
+                    cache: true
+                    pub-cache: true
+
+                - name: Verificar versiones
+                  run: |
+                    flutter --version
+                    dart --version
+                    java -version
+
+                - name: Resolver dependencias Flutter
+                  run: flutter pub get
+
+                - name: Verificar formato Dart
+                  run: dart format --output=none --set-exit-if-changed .
+
+                - name: Ejecutar análisis estático
+                  run: flutter analyze
+
+                - name: Ejecutar pruebas
+                  run: flutter test
+
+                - name: Compilar APK debug
+                  run: flutter build apk --debug
+
+                - name: Verificar APK y firma
+                  shell: bash
+                  run: |
+                    set -euo pipefail
+                    apk='build/app/outputs/flutter-apk/app-debug.apk'
+                    test -s "$apk"
+                    sha256sum "$apk"
+                    stat --format='Tamaño: %s bytes' "$apk"
+                    apksigner_path="$(find "${ANDROID_SDK_ROOT:-$ANDROID_HOME}/build-tools" -type f -name apksigner 2>/dev/null | sort -V | tail -n 1 || true)"
+                    if [ -n "$apksigner_path" ]; then
+                      "$apksigner_path" verify --verbose --print-certs "$apk"
+                    else
+                      echo 'apksigner no disponible en el runner'
+                    fi
+
+                - name: Publicar únicamente APK debug
+                  uses: actions/upload-artifact@v4
+                  with:
+                    name: sueno-bebe-1.0.0-debug
+                    path: sueno-bebe/build/app/outputs/flutter-apk/app-debug.apk
+                    if-no-files-found: error
+                    compression-level: 0
+                    retention-days: 14
+          YAML
+
+          rm -f \
+            .github/workflows/sueno-bebe-test-diagnostic.yml \
+            .github/workflows/sueno-bebe-error-report.yml \
+            .github/workflows/sueno-bebe-auto-repair.yml \
+            .github/workflows/sueno-bebe-auto-repair-v2.yml \
+            .github/workflows/sueno-bebe-finalize.yml \
+            .github/sueno-bebe-run-id \
+            .github/sueno-bebe-diag-run-id \
+            .github/sueno-bebe-repair-run-id \
+            .github/sueno-bebe-repair-v2-run-id \
+            .github/sueno-bebe-failure.txt \
+            .github/sueno-bebe-repair-v2.txt
+          rm -rf .github/sueno-bebe-ci .github/apk-handoff
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A .github
+          git commit -m 'Finalizar workflow reproducible de Sueño Bebé'
+          git push origin HEAD:main
