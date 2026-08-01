@@ -40,7 +40,7 @@ class AppController extends ChangeNotifier {
        _predictionService = predictionService ?? const PredictionService(),
        _notificationService = notificationService ?? NotificationService(),
        _exportService = exportService ?? const ExportService(),
-       _preferences = preferences ?? SharedPreferencesAsync(),
+       _preferencesOverride = preferences,
        _uuid = uuid ?? const Uuid(),
        _nowProvider = nowProvider ?? DateTime.now,
        _clock = (nowProvider ?? DateTime.now)().toUtc();
@@ -56,7 +56,10 @@ class AppController extends ChangeNotifier {
   final PredictionService _predictionService;
   final NotificationService _notificationService;
   final ExportService _exportService;
-  final SharedPreferencesAsync _preferences;
+  final SharedPreferencesAsync? _preferencesOverride;
+
+  SharedPreferencesAsync get _preferences =>
+      _preferencesOverride ?? SharedPreferencesAsync();
   final Uuid _uuid;
   final DateTime Function() _nowProvider;
 
@@ -468,8 +471,7 @@ class AppController extends ChangeNotifier {
 
   String sleepRangeStatus() {
     final BabyProfile? current = profile;
-    final SleepStatistics? stats = rolling24Hours;
-    if (current == null || stats == null) {
+    if (current == null) {
       return 'Sin datos suficientes';
     }
     final TrackingCoverage coverage = trackingCoverage(
@@ -480,6 +482,10 @@ class AppController extends ChangeNotifier {
     }
     if (coverage.level == TrackingCoverageLevel.completeFewRecords) {
       return coverage.message;
+    }
+    final SleepStatistics? stats = rolling24Hours;
+    if (stats == null) {
+      return 'Sin registros suficientes para comparar.';
     }
     final tz.TZDateTime localNow = tz.TZDateTime.from(nowUtc, location);
     final int months = AppDateTimeUtils.ageInMonths(

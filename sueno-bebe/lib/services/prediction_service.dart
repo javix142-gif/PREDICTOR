@@ -395,7 +395,10 @@ class PredictionService {
 
   SleepType _suggestType(DateTime wakeUtc, tz.Location location, int sequence) {
     final tz.TZDateTime local = tz.TZDateTime.from(wakeUtc, location);
-    return local.hour >= 17 || sequence >= 5 ? SleepType.night : SleepType.nap;
+    if (local.hour >= 18 || local.hour < 6) {
+      return SleepType.night;
+    }
+    return sequence >= 5 ? SleepType.night : SleepType.nap;
   }
 
   bool _isStale(List<AwakeWindowObservation> observations, DateTime nowUtc) {
