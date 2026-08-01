@@ -6,7 +6,6 @@ on:
     paths:
       - 'sueno-bebe/**'
       - '.github/workflows/sueno-bebe-apk.yml'
-      - '.github/bootstrap/**'
   workflow_dispatch:
 
 permissions:
@@ -25,33 +24,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p .github/sueno-bebe-ci
           echo "$GITHUB_RUN_ID" > .github/sueno-bebe-run-id
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add .github/sueno-bebe-run-id
           git commit -m "Registrar ejecución Sueño Bebé $GITHUB_RUN_ID"
           git push origin HEAD:main
-
-      - name: Materializar proyecto adjunto
-        shell: bash
-        run: |
-          set -euo pipefail
-          if compgen -G '.github/bootstrap/source.b64.part*' > /dev/null; then
-            cat .github/bootstrap/source.b64.part* | base64 --decode > /tmp/sueno_bebe_source.tar.xz
-            echo '2e0e84ca8bf4d61c2959d880858093970c55a3cf9a1e7fd0342b16a648e305e3  /tmp/sueno_bebe_source.tar.xz' | sha256sum --check --strict
-            rm -rf sueno-bebe
-            mkdir -p sueno-bebe
-            tar -xJf /tmp/sueno_bebe_source.tar.xz -C sueno-bebe
-            chmod +x sueno-bebe/android/gradlew
-            test -s sueno-bebe/pubspec.yaml
-            test -d sueno-bebe/lib
-            test -d sueno-bebe/android
-            test -d sueno-bebe/test
-            echo 'PROJECT_BOOTSTRAPPED=true' >> "$GITHUB_ENV"
-          else
-            echo 'PROJECT_BOOTSTRAPPED=false' >> "$GITHUB_ENV"
-            test -s sueno-bebe/pubspec.yaml
-          fi
 
       - name: Configurar Java 17
         uses: actions/setup-java@v4
@@ -70,9 +49,12 @@ jobs:
       - name: Verificar versiones
         shell: bash
         run: |
-          flutter --version
-          dart --version
-          java -version
+          set -o pipefail
+          {
+            flutter --version
+            dart --version
+            java -version
+          } 2>&1 | tee .github/sueno-bebe-ci/versions.log
 
       - name: Restaurar Gradle Wrapper faltante
         shell: bash
@@ -88,40 +70,40 @@ jobs:
           test -s "$wrapper"
           jar tf "$wrapper" >/dev/null
 
-      - name: Conservar proyecto materializado en GitHub
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ "${PROJECT_BOOTSTRAPPED:-false}" = 'true' ]; then
-            rm -rf .github/bootstrap
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add -A sueno-bebe .github/bootstrap
-            if ! git diff --cached --quiet; then
-              git commit -m 'Importar proyecto Flutter Sueño Bebé'
-              git push origin HEAD:main
-            fi
-          fi
-
       - name: Resolver dependencias Flutter
         working-directory: sueno-bebe
-        run: flutter pub get
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter pub get 2>&1 | tee ../.github/sueno-bebe-ci/pub-get.log
 
       - name: Verificar formato Dart
         working-directory: sueno-bebe
-        run: dart format --output=none --set-exit-if-changed .
+        shell: bash
+        run: |
+          set -o pipefail
+          dart format --output=none --set-exit-if-changed . 2>&1 | tee ../.github/sueno-bebe-ci/format.log
 
       - name: Ejecutar análisis estático
         working-directory: sueno-bebe
-        run: flutter analyze
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter analyze 2>&1 | tee ../.github/sueno-bebe-ci/analyze.log
 
       - name: Ejecutar pruebas
         working-directory: sueno-bebe
-        run: flutter test
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter test 2>&1 | tee ../.github/sueno-bebe-ci/test.log
 
       - name: Compilar APK debug
         working-directory: sueno-bebe
-        run: flutter build apk --debug
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter build apk --debug 2>&1 | tee ../.github/sueno-bebe-ci/build.log
 
       - name: Verificar APK y firma
         working-directory: sueno-bebe
@@ -130,16 +112,29 @@ jobs:
           set -euo pipefail
           apk='build/app/outputs/flutter-apk/app-debug.apk'
           test -s "$apk"
-          sha256sum "$apk"
-          stat --format='Tamaño: %s bytes' "$apk"
+          sha256sum "$apk" | tee ../.github/sueno-bebe-ci/apk-sha256.log
+          stat --format='Tamaño: %s bytes' "$apk" | tee ../.github/sueno-bebe-ci/apk-size.log
           apksigner_path="$(find "${ANDROID_SDK_ROOT:-$ANDROID_HOME}/build-tools" -type f -name apksigner 2>/dev/null | sort -V | tail -n 1 || true)"
           if [ -n "$apksigner_path" ]; then
-            "$apksigner_path" verify --verbose --print-certs "$apk"
+            "$apksigner_path" verify --verbose --print-certs "$apk" 2>&1 | tee ../.github/sueno-bebe-ci/apksigner.log
           else
-            echo 'apksigner no disponible en el runner'
+            echo 'apksigner no disponible en el runner' | tee ../.github/sueno-bebe-ci/apksigner.log
+          fi
+
+      - name: Registrar resultados de diagnóstico
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf 'run_id=%s\njob_status=%s\ncommit=%s\n' "$GITHUB_RUN_ID" "${{ job.status }}" "$GITHUB_SHA" > .github/sueno-bebe-ci/status.txt
+          git add .github/sueno-bebe-ci
+          if ! git diff --cached --quiet; then
+            git commit -m "Registrar diagnóstico Sueño Bebé $GITHUB_RUN_ID"
+            git push origin HEAD:main
           fi
 
       - name: Publicar únicamente APK debug
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: sueno-bebe-1.0.0-debug
