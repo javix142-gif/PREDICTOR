@@ -1,0 +1,65 @@
+name: Sueño Bebé reporte de fallo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sueno-bebe-error-report.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          channel: stable
+          cache: true
+          pub-cache: true
+
+      - name: Resolver dependencias
+        working-directory: sueno-bebe
+        run: flutter pub get
+
+      - name: Ejecutar pruebas y capturar fallo
+        id: tests
+        continue-on-error: true
+        working-directory: sueno-bebe
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter test --reporter expanded 2>&1 | tee /tmp/test.log
+
+      - name: Registrar resumen del fallo
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          lines = Path('/tmp/test.log').read_text(errors='replace').splitlines()
+          selected = []
+          markers = ('Expected:', 'Actual:', 'Which:', 'The test description was:', 'Some tests failed', 'test/')
+          for line in lines:
+              clean = re.sub(r'\x1b\[[0-9;]*m', '', line).strip()
+              if clean and any(marker in clean for marker in markers):
+                  selected.append(clean)
+          summary = ' | '.join(selected[:20]) or 'Sin detalle de fallo disponible'
+          Path('.github/sueno-bebe-failure.txt').write_text(summary + '\n', encoding='utf-8')
+          subject = re.sub(r'\s+', ' ', summary)[:180]
+          Path('/tmp/subject.txt').write_text(subject, encoding='utf-8')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/sueno-bebe-failure.txt
+          git commit -m "Sueño Bebé fallo: $(cat /tmp/subject.txt)"
+          git push origin HEAD:main
