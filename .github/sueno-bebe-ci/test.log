@@ -42,18 +42,6 @@ package:shared_preferences/src/shared_preferences_async.dart 25:7  new SharedPre
 package:sueno_bebe/controllers/app_controller.dart 43:38           new AppController
 test/tracking_coverage_test.dart 110:38                            main.<fn>
 ::endgroup::
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 3. recorta correctamente eventos en las últimas 24 horas
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 5. calcula promedio
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 6. calcula mediana para cantidad par e impar
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 7. calcula percentiles con interpolación lineal
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 8. calcula rango intercuartílico
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 9. devuelve estadísticas vacías sin inventar datos
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 10. calcula estadísticas de varios días y separa día/noche
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 17. una modificación recalcula los totales
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: días sin registros quedan como sin datos y no entran en variabilidad
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: variabilidad aparece solo con tres días con datos
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: media y mediana de siestas requieren dos siestas
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: una reanudación nocturna de un minuto no crea ventana despierto
 ::group::❌ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/redesign_widget_test.dart: Hoy funciona con texto 1.5 y muestra despertar nocturno (failed)
 ══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
 The following StateError was thrown running a test:
@@ -100,15 +88,20 @@ Test failed. See exception logs above.
 The test description was: navegación principal conserva las cuatro secciones
 
 ::endgroup::
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 3. recorta correctamente eventos en las últimas 24 horas
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 5. calcula promedio
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 6. calcula mediana para cantidad par e impar
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 7. calcula percentiles con interpolación lineal
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 8. calcula rango intercuartílico
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 9. devuelve estadísticas vacías sin inventar datos
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 10. calcula estadísticas de varios días y separa día/noche
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: 17. una modificación recalcula los totales
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: días sin registros quedan como sin datos y no entran en variabilidad
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: variabilidad aparece solo con tres días con datos
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: media y mediana de siestas requieren dos siestas
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/statistics_service_test.dart: una reanudación nocturna de un minuto no crea ventana despierto
 ✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/redesign_widget_test.dart: Estadísticas usa secciones y una columna con texto 1.5
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/prediction_service_test.dart: 11. predice con referencia por edad cuando no hay historial
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/prediction_service_test.dart: 12. predice con mediana e intervalo usando historial
 ✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/redesign_widget_test.dart: gráfico diario muestra ausencia cuando no hay datos
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/prediction_service_test.dart: 13. asigna confianza baja con pocas observaciones
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/prediction_service_test.dart: 14. asigna confianza media con cinco observaciones consistentes
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/prediction_service_test.dart: 15. asigna confianza alta con historial reciente y estable
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/prediction_service_test.dart: 16. evalúa una predicción sin modificar su intervalo original
-✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/prediction_service_test.dart: marca confianza baja cuando predominan horarios aproximados
 ::group::❌ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/redesign_widget_test.dart: formulario rápido calcula diez minutos (failed)
 ══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
 The following StateError was thrown running a test:
@@ -132,6 +125,13 @@ Test failed. See exception logs above.
 The test description was: formulario rápido calcula diez minutos
 
 ::endgroup::
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/prediction_service_test.dart: 11. predice con referencia por edad cuando no hay historial
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/prediction_service_test.dart: 12. predice con mediana e intervalo usando historial
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/prediction_service_test.dart: 13. asigna confianza baja con pocas observaciones
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/prediction_service_test.dart: 14. asigna confianza media con cinco observaciones consistentes
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/prediction_service_test.dart: 15. asigna confianza alta con historial reciente y estable
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/prediction_service_test.dart: 16. evalúa una predicción sin modificar su intervalo original
+✅ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/prediction_service_test.dart: marca confianza baja cuando predominan horarios aproximados
 ::group::❌ /home/runner/work/PREDICTOR/PREDICTOR/sueno-bebe/test/prediction_service_test.dart: despertar a las 02:00 mantiene tipo nocturno (failed)
 Expected: SleepType:<SleepType.night>
   Actual: SleepType:<SleepType.nap>
